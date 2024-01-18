@@ -1,0 +1,34 @@
+SpikeDeletion
+
+	- Models
+		- Generalized Model
+		- Specialized Model all channels
+		- Specialized Model 6 channel
+		- Specialized Model 2 channels
+
+	- Data
+		- Dataset tables
+		- Dataset 1: Bonobo center
+		- Dataset 2: Bonobo member
+		- Dataset 3: Bonobo
+		- Dataset 4: localized spikes
+
+	- Results
+		- bonobo test 2 channels.csv
+		- bonobo test 6 channels.csv		
+		- bonobo test all channels.csv		
+		- bonobo test random channels.csv
+		- localized.csv 
+		- bobobo_test.png
+		- localized_test.png		
+
+	- Scripts
+		- Train model
+		- Test specialized models on bonobo test set
+		- Test generalized model on bonobo test set (random channel deletion)
+		- Test specialized model on localized test set
+		- Visualize results on bonobo test set
+		- Visualize results on localized test set
+
+	- Subprojects
+		- generate topoplots 
