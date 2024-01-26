@@ -24,7 +24,7 @@ def build_dataloader(df,path_data,storage_channels,config):
    return test_dataloader
 
 def init_dataset():
-   df = pd.read_csv('../Data/tables/center_17JAN24.csv')
+   df = pd.read_csv('../Data/tables/experimental_localized_removed.csv')
    df = df[df.Mode=='Test'].copy()
    storage_channels = all_referential
    return df, storage_channels

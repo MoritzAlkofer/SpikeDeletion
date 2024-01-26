@@ -10,7 +10,7 @@ yerr = df.groupby('n_keeper').AUC.std()
 plt.errorbar(x,y,yerr,label='generalized')
 plt.scatter(19,0.966,label='specialized ten-twenty')
 plt.scatter(6,0.948,label='specialized sleep study')
-plt.scatter(2,0.935,label='specialized forehead ')
+plt.scatter(2,0.937,label='specialized forehead ')
 yerr
 plt.grid()
 plt.xticks(np.arange(0,20))

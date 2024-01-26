@@ -15,12 +15,11 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 
-
-
 def dataset_center():
     # returns high confidence dataframe, path and storage channels
     # Load Bonobo dataframe and add 'dataset' column
-    df = pd.read_csv('../Data/tables/center_17JAN24.csv')
+    #df = pd.read_csv('../Data/tables/lut_event_23-08-22.csv')
+    df = pd.read_csv('../Data/tables/experimental_localized_removed.csv')
     df['dataset'] = 'center' 
     df = df[df.total_votes_received>2]
     path = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/cluster_center/' 
@@ -90,7 +89,7 @@ class DeletedChannelsDatamoduleWithMembers(pl.LightningDataModule):
 
         if echo:
             print('building datamodule!')
-            print(f'there are {len(df[df.Mode=="Train"])} test samples and {len(df[df.Mode=="Val"])} val samples')
+            print(f'there are {len(df[df.Mode=="Train"])} train samples and {len(df[df.Mode=="Val"])} val samples')
             print(f'the fraction of positive samples is {df.fraction_of_yes.sum()/len(df):.2f}\n')
 
         channel_deleter = choose_channel_deleter(n_keeper_channels,montage_channels,keeper_channels)        
@@ -295,6 +294,7 @@ if __name__ == '__main__':
     model_name, channels = get_args()
     path_model = f'../Models/{model_name}'
     config = Config()
+    config.BATCH_SIZE = 128
     config.CHANNELS = str_to_channel_list(channels)
     config.save_config(path_model)
 

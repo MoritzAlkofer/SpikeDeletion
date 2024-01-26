@@ -2,11 +2,12 @@
 from torch.nn import BCELoss
 from pytorch_lightning import LightningModule
 import torch.nn as nn
+from linear_attention_transformer import LinearAttentionTransformer
 import torch
+import math
 
 import sys
 sys.path.append('/home/moritz/Desktop/programming/epilepsy_project/librarys')
-from general.losses import FocalLoss
 
 class RMSELoss(nn.Module):
     def __init__(self):
@@ -30,125 +31,6 @@ class RegressionHead(nn.Sequential):
     def forward(self, x):
         out = self.reghead(x)
         return out
-
-# create a specialized finetuning module
-class EEGTransformer(LightningModule):
-    def __init__(self,lr,head_dropout=0.3,emb_size=256,weight_decay=0, heads=8, depth=4,n_channels=int,n_fft=int,hop_length=int, emb_mode = False):
-        super().__init__()
-        self.lr = lr
-        self.weight_decay=weight_decay
-        self.emb_mode = emb_mode
-        # create the BIOT encoder
-        self.biot = BIOTEncoder(emb_size=emb_size, heads=heads, depth=depth,n_channels=n_channels,n_fft=n_fft,hop_length = hop_length)
-        # create the regression head
-        self.head = RegressionHead(emb_size,head_dropout)
-        self.RMSE = RMSELoss()
-        self.loss = BCELoss()
-
-    def forward(self, x):
-        x = self.biot(x)
-        x = self.head(x)
-        return x
-
-    def training_step(self,batch,batch_idx):
-        x, target = batch
-        # flatten label
-        target = target.view(-1, 1).float()
-        pred = self.forward(x)
-        loss = self.loss(pred, target)
-        self.log('train_loss', loss,prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
-        self.log('train_RMSE', self.RMSE(target=target,pred=pred),prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
-        return loss
-    
-    def validation_step(self,batch,batch_idx):
-        x, target = batch
-        # flatten label
-        target = target.view(-1, 1).float()
-        pred = self.forward(x)
-        loss = self.loss(pred, target)
-        self.log('val_loss', loss,prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
-        self.log('val_RMSE', self.RMSE(target=target,pred=pred),prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
-        return loss
-    
-    def predict_step(self,batch,batch_idx,dataloader_idx=0):
-        if not self.emb_mode:
-            signals, labels = batch
-            # flatten label
-            labels = labels.view(-1, 1).float()
-            # generate predictions
-            preds = self.forward(signals)
-            # compute and log loss
-            return preds
-        elif self.emb_mode:
-            signals, labels = batch
-            emb = self.biot(signals)
-            return emb
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr,weight_decay=self.weight_decay)
-        return optimizer
-    
-# normal finetuning but with focal loss
-class FocalFineTuning(LightningModule):
-    def __init__(self,lr,head_dropout=0.3, alpha=0.5,gamma=1,emb_size=256,weight_decay=0, heads=8, depth=4,n_channels=int,n_fft=int,hop_length=int, emb_mode = False):
-        super().__init__()
-        self.lr = lr
-        self.weight_decay=weight_decay
-        self.emb_mode = emb_mode
-        # create the BIOT encoder
-        self.biot = BIOTEncoder(emb_size=emb_size, heads=heads, depth=depth,n_channels=n_channels,n_fft=n_fft,hop_length = hop_length)
-        # create the regression head
-        self.head = RegressionHead(emb_size,head_dropout)
-        self.RMSE = RMSELoss()
-        self.loss = FocalLoss(alpha=alpha,gamma=gamma)
-
-    def forward(self, x):
-        x = self.biot(x)
-        x = self.head(x)
-        return x
-
-    def training_step(self,batch,batch_idx):
-        x, target = batch
-        # flatten label
-        target = target.view(-1, 1).float()
-        pred = self.forward(x)
-        loss = self.loss(pred, target)
-        self.log('train_loss', loss,prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
-        self.log('train_RMSE', self.RMSE(target=target,pred=pred),prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
-        return loss
-    
-    def validation_step(self,batch,batch_idx):
-        x, target = batch
-        # flatten label
-        target = target.view(-1, 1).float()
-        pred = self.forward(x)
-        loss = self.loss(pred, target)
-        self.log('val_loss', loss,prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
-        self.log('val_RMSE', self.RMSE(target=target,pred=pred),prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
-        return loss
-    
-    def predict_step(self,batch,batch_idx,dataloader_idx=0):
-        if not self.emb_mode:
-            signals, labels = batch
-            # flatten label
-            labels = labels.view(-1, 1).float()
-            # generate predictions
-            preds = self.forward(signals)
-            # compute and log loss
-            return preds
-        elif self.emb_mode:
-            signals, labels = batch
-            emb = self.biot(signals)
-            return emb
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr,weight_decay=self.weight_decay)
-        return optimizer
-
-import torch.nn as nn
-from linear_attention_transformer import LinearAttentionTransformer
-import torch
-import math
 
 # copied from chaoqi
 class PatchFrequencyEmbedding(nn.Module):
@@ -279,3 +161,60 @@ class BIOTEncoder(nn.Module):
         emb = self.transformer(emb).mean(dim=1)
         return emb
  
+# create a specialized finetuning module
+class EEGTransformer(LightningModule):
+    def __init__(self,lr,head_dropout=0.3,emb_size=256,weight_decay=0, heads=8, depth=4,n_channels=int,n_fft=int,hop_length=int, emb_mode = False):
+        super().__init__()
+        self.lr = lr
+        self.weight_decay=weight_decay
+        self.emb_mode = emb_mode
+        # create the BIOT encoder
+        self.biot = BIOTEncoder(emb_size=emb_size, heads=heads, depth=depth,n_channels=n_channels,n_fft=n_fft,hop_length = hop_length)
+        # create the regression head
+        self.head = RegressionHead(emb_size,head_dropout)
+        self.RMSE = RMSELoss()
+        self.loss = BCELoss()
+
+    def forward(self, x):
+        x = self.biot(x)
+        x = self.head(x)
+        return x
+
+    def training_step(self,batch,batch_idx):
+        x, target = batch
+        # flatten label
+        target = target.view(-1, 1).float()
+        pred = self.forward(x)
+        loss = self.loss(pred, target)
+        self.log('train_loss', loss,prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
+        self.log('train_RMSE', self.RMSE(target=target,pred=pred),prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
+        return loss
+    
+    def validation_step(self,batch,batch_idx):
+        x, target = batch
+        # flatten label
+        target = target.view(-1, 1).float()
+        pred = self.forward(x)
+        loss = self.loss(pred, target)
+        self.log('val_loss', loss,prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
+        self.log('val_RMSE', self.RMSE(target=target,pred=pred),prog_bar=True,on_step=False,on_epoch=True,sync_dist=True)
+        return loss
+    
+    def predict_step(self,batch,batch_idx,dataloader_idx=0):
+        if not self.emb_mode:
+            signals, labels = batch
+            # flatten label
+            labels = labels.view(-1, 1).float()
+            # generate predictions
+            preds = self.forward(signals)
+            # compute and log loss
+            return preds
+        elif self.emb_mode:
+            signals, labels = batch
+            emb = self.biot(signals)
+            return emb
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr,weight_decay=self.weight_decay)
+        return optimizer
+    
