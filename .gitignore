@@ -6,3 +6,7 @@ Scripts/logging
 Scripts/logging
 Scripts/.logging
 Scripts/wandb
+Data/
+mount/
+Models/
+Scripts/lightning_logs
