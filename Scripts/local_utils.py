@@ -3,11 +3,13 @@ from torch.utils.data import Dataset
 import torch
 from dataclasses import dataclass, field
 import pickle
+import pandas as pd
 import os
 
+# transforms
 class build_montage():
     # this version can also convert cdac monopolar montage into mgh_psg monopolar montage
-    def __init__(self,montage_channels,storage_channels,echo=True):
+    def __init__(self,montage_channels,storage_channels,echo=False):
         
         # AVERAGE MONTAGE
         # get list of all channels that should be displayed in average montage
@@ -65,6 +67,45 @@ class cut_and_jitter():
         start = start + int(np.random.uniform(-1, 1)*self.max_offset)
         return signal[:,start:start+self.windowsize]
         
+def normalize(signal):
+    signal = signal / (np.quantile(np.abs(signal), q=0.95, method="linear", axis=-1, keepdims=True) + 1e-8)
+    signal = signal - np.mean(signal)
+    
+    return signal
+
+class remove_channels():
+    # init with list of signal montage channels, number of channels to be retained
+    # use: input: signal
+    # output: zero masked signal with *fixed* number of random channels retained
+    def __init__(self,N_channels,N_keeper):
+        self.N_channels = N_channels
+        self.N_keeper = N_keeper
+    def __call__(self,signal):
+        # choose n random keeper_channels
+        if self.N_keeper!='random':
+            keeper_indices = np.random.choice(self.N_channels, self.N_keeper, replace=False)
+        elif self.N_keeper == 'random':
+            N_random_keeper = np.random.randint(1,self.N_channels)
+            
+            # choose n random channels
+            keeper_indices = np.random.choice(self.N_channels, N_random_keeper, replace=False)
+        # build output
+        output = np.zeros_like(signal)
+        output[keeper_indices,:] = signal[keeper_indices,:]
+        return output
+
+
+def get_transforms(montage_channels,storage_channels,windowsize,windowjitter,Fq):
+    montage = build_montage(montage_channels,storage_channels)
+    cutter = cut_and_jitter(windowsize,windowjitter,Fq)
+    if random_delete:
+        channel_remover = remove_channels(len(montage_channels),N_keeper='random')
+        transforms = [montage,cutter,normalize,channel_remover]
+        print('deleting random channels!')
+    else:
+        transforms = [montage,cutter,normalize]
+        print('keeping all channels')
+
 class MultiSourceSpikeDataset(Dataset):
     def __init__(self, df, metadata, montage_channels, windowcutter = None,transform=None,normalize=False,echo=True):
         
@@ -181,19 +222,20 @@ class SpikeDataset(torch.utils.data.Dataset):
 
 all_referential = ['Fp1','F3','C3','P3','F7','T3','T5','O1', 'Fz','Cz','Pz', 'Fp2','F4','C4','P4','F8','T4','T6','O2']
 
-full_bipolar = ['Fp1-F7', 'F7-T3', 'T3-T5', 'T5-O1', 
+all_bipolar = ['Fp1-F7', 'F7-T3', 'T3-T5', 'T5-O1', 
                              'Fp2-F8', 'F8-T4', 'T4-T6', 'T6-O2', 
                              'Fp1-F3', 'F3-C3', 'C3-P3', 'P3-O1', 
                              'Fp2-F4', 'F4-C4', 'C4-P4', 'P4-O2', 
                              'Fz-Cz', 'Cz-Pz']
         
-four_bipolar = mgh_psg_bipolar_montage = ['F3-C3','C3-O1','F4-C4','C4-O2']
+six_bipolar = ['F3-C3','C3-O1','F4-C4','C4-O2']
 
 two_referential = ['Fp1','Fp2']
 
+six_referential = ['F3','C3','O1','F4','C4','O2']
+
 @dataclass
 class Config:
-
     # Signal parameters
     FQ: int = 128 # Hz
     
@@ -216,7 +258,7 @@ class Config:
     SIGNAL_MIN: int = 20
 
     # training parameters
-    BATCH_SIZE: int = 32
+    BATCH_SIZE: int = 128
     LR: float = 1e-4
 
 
@@ -232,4 +274,71 @@ class Config:
         # save config to model_path using pickle
         with open(os.path.join(path, 'config.pkl'), 'wb') as f:
             pickle.dump(self, f)     
+
+def dataset_center():
+    # returns high confidence dataframe, path and storage channels
+    # Load Bonobo dataframe and add 'dataset' column
+    #df = pd.read_csv('../Data/tables/archive/lut_event_23-08-22.csv')
+    df = pd.read_csv('../Data/tables/lut_event_23-08-22.csv')
+    df['dataset'] = 'center' 
+    df = df[df.total_votes_received>2]
+    path = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/cluster_center/' 
+    storage_channels = all_referential
+
+    return df, path, storage_channels
+
+def dataset_member():
+    # cluster member
+    df = pd.read_csv('../Data/tables/member_17JAN24.csv')
+    df = df[df.total_votes_received>2]
+    df['dataset'] = 'member' 
+    p = [0.9, 0.1] 
+    vals = np.random.choice(['Train', 'Val'], size=len(df), p=p)
+    df['Mode']=vals
+    df['total_votes_received']=8
+    df['event_file'] = df.eeg_file.str.replace('.mat','', regex=True)
+    path = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/cluster_members/' 
+    storage_channels= all_referential
+
+    return df, path, storage_channels
+
+def dataset_control(N=40000):
+    # random controls
+    print(N)
+    df = pd.read_csv('/home/moritz/Desktop/programming/epilepsy_project/tables/bonobo/lut_event_random_controls_23-11-06.csv')
+    df['dataset'] = 'control' 
+    p = [0.9, 0.1] 
+    vals = np.random.choice(['Train', 'Val'], size=len(df), p=p)
+    df['Mode']=vals
+    if N !="all":
+        df = df[:N]
+
+    # Add metadata for Bonobo dataset
+    path = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/random_snippets/' 
+    storage_channels = all_referential
+    return df,path,storage_channels
+
+def prepare_member_and_center_info(datasets):
+    # input: list of dataset functions, each of which returns the datasets dataframe, location and storage chanel
+    # output: concatenated_dataframes + metadata dictionary
+    # Initialize empty list to collect dataframes
+    dfs = []
+    # Create empty dictionary to store dataset metadata
+    metadata = {}
+
+    for dataset in datasets.keys():
+        datasets[dataset]()
+        df, path, storage_channels = datasets[dataset]()
+        dfs.append(df)
+        metadata[dataset]={}
+        metadata[dataset]['path']=path
+        metadata[dataset]['storage_channels']=storage_channels
+
+    df = pd.concat(dfs)
+    df = df[['event_file','patient_id','total_votes_received','fraction_of_yes','Mode','dataset']]
+
+    print(f'\n using the following datasets: {metadata.keys()} to build datamodule\n')
+    # print how much data each dataset has
+    print(df.dataset.value_counts())
+    return df, metadata
 

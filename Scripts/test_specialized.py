@@ -1,11 +1,10 @@
-from a_train_model import Config
+from local_utils import remove_channels, build_montage,normalize, cut_and_jitter, Config
+from local_utils import all_referential
+from make_datamodule import datamodule, get_split_df
 import numpy as np
 import os
 import pickle
-import pandas as pd
-from utils import *
-from utils import cut_and_jitter, build_montage, SpikeDataset
-from torch.utils.data import DataLoader
+import torch
 from model import EEGTransformer
 import pytorch_lightning as pl
 import argparse
@@ -15,31 +14,21 @@ def get_config(path_model):
       config = pickle.load(f)
    return config
 
-def build_dataloader(df,path_data,storage_channels,config):
-   montage = build_montage(montage_channels=config.CHANNELS,storage_channels=storage_channels)
-   windowcutter = cut_and_jitter(windowsize=config.WINDOWSIZE,max_offset=0,Fq=config.FQ)
-   # set up dataloaders
-   dataset_test = SpikeDataset(df, path_data, windowcutter=windowcutter, montage=montage, transform=None)
-   test_dataloader = DataLoader(dataset_test, batch_size=config.BATCH_SIZE, shuffle=False, num_workers=os.cpu_count())
-   return test_dataloader
-
-def init_dataset():
-   df = pd.read_csv('../Data/tables/experimental_localized_removed.csv')
-   df = df[df.Mode=='Test'].copy()
-   storage_channels = all_referential
-   return df, storage_channels
-
 def load_model_from_checkpoint(path_model,config):
    model = EEGTransformer.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),
                                           lr=config.LR,
                                           head_dropout=config.HEAD_DROPOUT,
                                           n_channels=len(config.CHANNELS),
                                           n_fft=config.N_FFT,
-                                          hop_length=config.HOP_LENGTH)# add this if running on CPU machine
+                                          hop_length=config.HOP_LENGTH,
+                                          heads = config.HEADS,
+                                          depth=config.DEPTH,
+                                          emb_size = config.EMB_SIZE,
+                                          weight_decay = config.WEIGHT_DECAY)
    return model
 
 def init_trainer():
-   trainer = pl.Trainer(default_root_dir='./logging', enable_progress_bar=False,accelerator='cpu')
+   trainer = pl.Trainer(default_root_dir='./logging', enable_progress_bar=False,devices=1)
    return trainer
 
 def generate_predictions(model,trainer,dataloader):
@@ -49,7 +38,7 @@ def generate_predictions(model,trainer,dataloader):
 
 def save_preds(df,preds,path_model):
    df['preds'] = preds
-   df = df[['event_file','preds','total_votes_received','fraction_of_yes']]
+   df = df[['event_file','preds','total_votes_received','fraction_of_yes','Mode']]
    df.to_csv(path_model+'/pred.csv',index=False)
 
 def get_args():
@@ -58,14 +47,21 @@ def get_args():
     args = parser.parse_args()
     return args.path_model
 
+def get_transforms(montage_channels,storage_channels,windowsize,windowjitter,Fq):
+   montage = build_montage(montage_channels,storage_channels)
+   cutter = cut_and_jitter(windowsize,windowjitter,Fq)
+   transforms = [montage,cutter,normalize]
+   print('keeping all channels')
+   return transforms
+
 if __name__=='__main__':
 
    path_model = get_args()
    path_data = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/cluster_center/' 
-
-   df, storage_channels = init_dataset()
    config = get_config(path_model)
-   dataloader = build_dataloader(df,path_data,storage_channels,config)
+   transforms = get_transforms(config.CHANNELS,all_referential,10,0,128)
+   module = datamodule(transforms=transforms,batch_size=256)
+   dataloader, df = module.test_dataloader(), get_split_df(module.df,'Test')
    model = load_model_from_checkpoint(path_model,config)
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')

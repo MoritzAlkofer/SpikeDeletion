@@ -1,26 +1,20 @@
+import os
 import pandas as pd
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
+from make_datamodule import datamoduleLocal, get_split_dfLocal 
 
 def init_results_dataframe_bonobo():
     # load results
-    df = pd.read_csv('../Models/generalized/results_bonobo_localized.csv')
+    df = pd.read_csv('../Models/generalized_all_ref_loc/results_localized.csv')
     # load location labels
-    df_locations = pd.read_csv('../Data/tables/locations_bonobo.csv')
+    df_locations = pd.read_csv('../Data/tables/locations_13FEB24.csv')
+    df_locations = df_locations.rename(columns={'location':'SpikeLocation'})
     df = df.merge(df_locations[['event_file','SpikeLocation']],on='event_file',how='left')
-    return df
-
-def init_results_dataframe_HashFolder():
-    # load results
-    df = pd.read_csv('../Models/generalized/results_HashFolder_localized.csv')
-    # load location labels
-    df_locations = pd.read_csv('../Data/tables/locations_HashFolders.csv')
-    df = df.merge(df_locations[['event_file','SpikeLocation']],on='event_file',how='left')
-    df.dropna(subset=['pred'], inplace=True)
     return df
 
 def init_locations():
-    SpikeLocations = ['frontal','parietal', 'occipital','temporal','general']
+    SpikeLocations = ['frontal','central','parietal', 'occipital','temporal','general']
     ChannelLocations = ['frontal','central', 'parietal', 'occipital','temporal']
     return SpikeLocations,ChannelLocations
 
@@ -35,23 +29,6 @@ def get_preds_and_labels(df,SpikeLocation,ChannelLocation):
     labels = df_eval.fraction_of_yes.round(0).astype(int)
     preds = df_eval.pred.to_list()
     return labels, preds
-
-def init_bonobo_only():
-    df_bonobo = init_results_dataframe_bonobo()
-    return df_bonobo
-
-def init_hashfolder_only():
-    df_bonobo = init_results_dataframe_bonobo()
-    df_bonobo = df_bonobo[df_bonobo.fraction_of_yes<1/8]
-    df_HashFolder = init_results_dataframe_HashFolder()
-    df = pd.concat([df_bonobo,df_HashFolder])
-    return df
-
-def init_datasets_combined():
-    df_bonobo = init_results_dataframe_bonobo()
-    df_HashFolder = init_results_dataframe_HashFolder()
-    df = pd.concat([df_bonobo,df_HashFolder])
-    return df
 
 def get_results_SpikeLocation(results,SpikeLocation):
     SpikeResults = results[results.SpikeLocation==SpikeLocation].sort_values('roc_auc',ascending=False)
@@ -83,9 +60,13 @@ def calcualte_roc_results(df,SpikeLocations,ChannelLocations):
     return pd.DataFrame(results)
 
 if __name__ == '__main__':
-    df = init_bonobo_only()
-    #df = init_hashfolder_only()
-    #df = init_datasets_combined()
+    module = datamoduleLocal(transforms = None, batch_size=256)
+    path_model = '../Models/generalized_all_ref_loc'
+    df = pd.read_csv(os.path.join(path_model,'results_localized.csv'))
+    df_locations = pd.read_csv('../Data/tables/locations_13FEB24.csv')
+    df_locations = df_locations.rename(columns={'location':'SpikeLocation'})
+    df = df.merge(df_locations[['event_file','SpikeLocation']],on='event_file',how='left')
+
     SpikeLocations,ChannelLocations = init_locations()
     results = calcualte_roc_results(df,SpikeLocations,ChannelLocations)
 
@@ -97,15 +78,13 @@ for i,SpikeLocation in enumerate(SpikeLocations):
     for j, ChannelLocation in enumerate(results_SpikeLocation.ChannelLocation):
         fpr, tpr, roc_auc, N = get_results_ChannelLocation(results_SpikeLocation,ChannelLocation)
         ax=plot_subplot(ax,fpr,tpr,roc_auc,N,ChannelLocation)
-    ax.set_title(f'{SpikeLocation}, N={N}')
+    ax.set_title(f'{SpikeLocation} spikes, N={N}')
     ax.legend()
-fig.suptitle('Localized spike detection with localized node placement')
 axs[0,0].set_ylabel('tpr')
 axs[1,0].set_ylabel('tpr')
 for j in range(3):
     axs[1,j].set_xlabel('fpr')
 
 fig.tight_layout()
-fig.savefig('test.png')
-fig.show()
+fig.savefig(os.path.join(path_model,'fig_general_local.png'))
 

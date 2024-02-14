@@ -163,7 +163,7 @@ class BIOTEncoder(nn.Module):
  
 # create a specialized finetuning module
 class EEGTransformer(LightningModule):
-    def __init__(self,lr,head_dropout=0.3,emb_size=256,weight_decay=0, heads=8, depth=4,n_channels=int,n_fft=int,hop_length=int, emb_mode = False):
+    def __init__(self,lr,head_dropout,emb_size,weight_decay, heads, depth,n_channels=int,n_fft=int,hop_length=int, emb_mode = False):
         super().__init__()
         self.lr = lr
         self.weight_decay=weight_decay
@@ -216,5 +216,6 @@ class EEGTransformer(LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr,weight_decay=self.weight_decay)
+
         return optimizer
     

@@ -1,14 +1,15 @@
-from a_train_model import Config
+from local_utils import all_referential, build_montage, normalize, cut_and_jitter
+from make_datamodule import datamoduleLocal, get_split_dfLocal 
 import numpy as np
 import os
 import pickle
 import pandas as pd
-from utils import *
-from utils import cut_and_jitter, build_montage, SpikeDataset
-from torch.utils.data import DataLoader
+#from utils import *
+from local_utils import all_referential
+from tqdm import tqdm 
 from model import EEGTransformer
+import torch
 import pytorch_lightning as pl
-import argparse
 
 def get_config(path_model):
    with open(os.path.join(path_model,'config.pkl'), 'rb') as f:
@@ -39,39 +40,17 @@ class keep_fixed_number_of_fixed_channels():
         output[keeper_indices,:] = signal[keeper_indices,:]
         return output
 
-def build_channel_deleter(keeper_channels,config):
-   channel_deleter = keep_fixed_number_of_fixed_channels(montage_channels=config.CHANNELS,keeper_channels=keeper_channels)
-   return channel_deleter
-
-def build_dataloader(df,path_data,storage_channels,transforms,config):
-   montage = build_montage(montage_channels=config.CHANNELS,storage_channels=storage_channels)
-   windowcutter = cut_and_jitter(windowsize=config.WINDOWSIZE,max_offset=0,Fq=config.FQ)
-   # set up dataloaders
-   dataset_test = SpikeDataset(df, path_data, windowcutter=windowcutter, montage=montage, transform=transforms)
-   test_dataloader = DataLoader(dataset_test, batch_size=config.BATCH_SIZE, shuffle=False, num_workers=os.cpu_count())
-   return test_dataloader
-
-def init_dataset_center():
-   df = pd.read_csv('../Data/tables/lut_event_23-08-22.csv')
-   df = df[df.Mode=='Test'].copy()
-   storage_channels = all_referential
-   path_data = '../Data/cluster_center'
-   return df, storage_channels, path_data
-
-def init_dataset_HashFolder():
-   df = pd.read_csv('../Data/tables/locations_HashFolders.csv')
-   df['fraction_of_yes']=1
-   storage_channels = all_referential
-   path_data = '../Data/extracted_localized_hashfolder_processed'
-   return df, storage_channels, path_data
-
 def load_model_from_checkpoint(path_model,config):
    model = EEGTransformer.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),
-                                          lr=config.LR,
-                                          head_dropout=config.HEAD_DROPOUT,
-                                          n_channels=len(config.CHANNELS),
-                                          n_fft=config.N_FFT,
-                                          hop_length=config.HOP_LENGTH)# add this if running on CPU machine
+                                       lr=config.LR,
+                                       head_dropout=config.HEAD_DROPOUT,
+                                       n_channels=len(config.CHANNELS),
+                                       n_fft=config.N_FFT,
+                                       hop_length=config.HOP_LENGTH,
+                                       heads = config.HEADS,
+                                       depth=config.DEPTH,
+                                       emb_size = config.EMB_SIZE,
+                                       weight_decay = config.WEIGHT_DECAY)
    return model
 
 def init_trainer():
@@ -90,26 +69,29 @@ def save_preds(df,preds,path_model):
 
 if __name__=='__main__':
 
-   path_model = '../Models/generalized'
+   path_model = '../Models/generalized_all_ref_loc'
    
-
-   # df, storage_channels = init_dataset_bonobo()
-   df, storage_channels, path_data = init_dataset_HashFolder()
    config = get_config(path_model)
    model = load_model_from_checkpoint(path_model,config)
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')
    location_dict = init_location_dict()
 
+   montage = build_montage(config.CHANNELS,all_referential)
+   cutter = cut_and_jitter(config.WINDOWSIZE,0,config.FQ)
+   model = load_model_from_checkpoint(path_model,config)
    results = {'event_file':[],'fraction_of_yes':[],'pred':[],'ChannelLocation':[]}
-   for location,keeper_channels in location_dict.items():
-      channel_deleter = build_channel_deleter(keeper_channels,config)
-      dataloader = build_dataloader(df,path_data,storage_channels,config=config,transforms=channel_deleter)
+   for location,keeper_channels in tqdm(location_dict.items()):
+      channel_remover = keep_fixed_number_of_fixed_channels(config.CHANNELS,keeper_channels)
+      transforms = [montage,cutter,normalize,channel_remover]
+      module = datamoduleLocal(transforms=transforms,batch_size=256,echo=False)
+      dataloader, df = module.test_dataloader(), get_split_dfLocal(module.df,'Test')
       preds = generate_predictions(model,trainer,dataloader)
+
       results['event_file']+=df.event_file.to_list()
       results['fraction_of_yes']+=df.fraction_of_yes.to_list()
       results['pred']+=list(preds)
       results['ChannelLocation']+=[location]*len(df.event_file)
 
 results = pd.DataFrame(results)
-results.to_csv(path_model+f'results.csv',index=False)
+results.to_csv(path_model+f'/results_localized.csv',index=False)
