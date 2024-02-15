@@ -3,6 +3,9 @@ import pandas as pd
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 from make_datamodule import datamoduleLocal, get_split_dfLocal 
+from cycler import cycler
+line_cycler   = (cycler(color=["#56B4E9","#E69F00", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#F0E442"]))
+plt.rc("axes", prop_cycle=line_cycler)
 
 def init_results_dataframe_bonobo():
     # load results
@@ -31,7 +34,7 @@ def get_preds_and_labels(df,SpikeLocation,ChannelLocation):
     return labels, preds
 
 def get_results_SpikeLocation(results,SpikeLocation):
-    SpikeResults = results[results.SpikeLocation==SpikeLocation].sort_values('roc_auc',ascending=False)
+    SpikeResults = results[results.SpikeLocation==SpikeLocation]#.sort_values('roc_auc',ascending=False)
     return SpikeResults
 
 def get_results_ChannelLocation(results_SpikeLocation,ChannelLocation):
@@ -40,7 +43,7 @@ def get_results_ChannelLocation(results_SpikeLocation,ChannelLocation):
     return fpr,tpr,roc_auc, N
 
 def plot_subplot(ax,fpr,tpr,roc_auc,N,ChannelLocation):
-    ax.plot(fpr,tpr,label=ChannelLocation+f' ROC: {roc_auc:.2f}')
+    ax.plot(fpr,tpr,label=ChannelLocation+f': {roc_auc:.2f}')
     return ax
   
 def calcualte_roc_results(df,SpikeLocations,ChannelLocations):
@@ -70,20 +73,23 @@ if __name__ == '__main__':
     SpikeLocations,ChannelLocations = init_locations()
     results = calcualte_roc_results(df,SpikeLocations,ChannelLocations)
 
-fig, axs = plt.subplots(2,3,figsize = (12,5),sharex=True,sharey=True)
+fig, axs = plt.subplots(2,3,figsize = (10,7),sharex=True,sharey=True)
 
 for i,SpikeLocation in enumerate(SpikeLocations):
     ax = axs[i//3,i%3]
     results_SpikeLocation = get_results_SpikeLocation(results,SpikeLocation)
     for j, ChannelLocation in enumerate(results_SpikeLocation.ChannelLocation):
         fpr, tpr, roc_auc, N = get_results_ChannelLocation(results_SpikeLocation,ChannelLocation)
-        ax=plot_subplot(ax,fpr,tpr,roc_auc,N,ChannelLocation)
-    ax.set_title(f'{SpikeLocation} spikes, N={N}')
-    ax.legend()
-axs[0,0].set_ylabel('tpr')
-axs[1,0].set_ylabel('tpr')
+        ax=plot_subplot(ax,fpr,tpr,roc_auc,N,ChannelLocation.capitalize())
+    ax.set_title(f'{SpikeLocation.capitalize()} spikes, N={N}')
+    ax.set_aspect('equal')
+    ax.set_ylim(0,1)
+    ax.set_xlim(0,1)
+    ax.legend(frameon=False)
+axs[0,0].set_ylabel('Tpr')
+axs[1,0].set_ylabel('Tpr')
 for j in range(3):
-    axs[1,j].set_xlabel('fpr')
+    axs[1,j].set_xlabel('Fpr')
 
 fig.tight_layout()
 fig.savefig(os.path.join(path_model,'fig_general_local.png'))
