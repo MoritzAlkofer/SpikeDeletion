@@ -40,6 +40,7 @@ def plot_ro_curve(ax,AUC,fpr,tpr,model_name):
     ax.plot([0,1], [0, 1], linestyle='--')
     ax.set_xlabel('false positive rate')
     ax.set_ylabel('true positive rate')
+    ax.set_aspect('equal')
     ax.legend(loc="lower right")
     ax.set_title('Receiver operating characteristic curve')
     return ax
@@ -59,7 +60,7 @@ def calculate_metrics(tn,fp,fn,tp):
     sensitivity = tp / (tp + fn)
     specificity = tn / (tn + fp) 
     precision = tp / (tp + fp)
-    return accuracy.round(3), sensitivity.round(3), specificity.round(3), precision.round(3)
+    return accuracy.round(2), sensitivity.round(2), specificity.round(2), precision.round(2)
 
 def plot_confusion_matrix(ax,cm,model_name):
     sns.heatmap(cm, annot=True, ax=ax,cbar=False,fmt='g')
@@ -91,7 +92,7 @@ if __name__=='__main__':
         df = apply_filters(df)
         y_true,y_score = get_label_and_pred(df)
         y_score = binarize(y_score,threshold)
-        model_name = model.replace('_',' ').replace('specialized','')
+        model_name = model.replace('_',' ').replace('specialized','')[1:].capitalize()
         cm,accuracy, sensitivity, specfificity, precision = create_cm(y_true,y_score)
         axs[i] = plot_confusion_matrix(axs[i],cm,model_name)
         results['model'].append(model_name)
@@ -102,6 +103,8 @@ if __name__=='__main__':
 
     axs[1].set_yticks([])
     axs[2].set_yticks([])
+    axs[3].set_yticks([])
+    axs[4].set_yticks([])
 
     fig.tight_layout()
     fig.savefig('confusion_matix.png')

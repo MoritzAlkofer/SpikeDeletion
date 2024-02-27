@@ -1,5 +1,5 @@
 from local_utils import all_referential, build_montage, normalize, cut_and_jitter
-from make_datamodule import datamoduleLocal, get_split_dfLocal 
+from make_datamodule import datamoduleLocal,datamoduleClemson, datamoduleHash, get_split_dfLocal 
 import numpy as np
 import os
 import pickle
@@ -26,6 +26,8 @@ def init_location_dict():
          'general':['Fp1','F3','C3','P3','F7','T3','T5','O1', 'Fz','Cz','Pz', 'Fp2','F4','C4','P4','F8','T4','T6','O2']}
    return location_dict
 
+x = "'frontal':['F3','F4'],         'parietal':['P3','P4'],         'occipital':['O1','O2'],         'temporal':['T3','T4'],         'central':['C3','C4'],         'general':['Fp1','F3','C3','P3','F7','T3','T5','O1', 'Fz','Cz','Pz', 'Fp2','F4','C4','P4','F8','T4','T6','O2']}"
+x.replace("'","").replace('[','').replace('',']')
 class keep_fixed_number_of_fixed_channels():
     # init with total number of channels + channels to be retained
     # use: input, signal, list of channels to be retained
@@ -54,7 +56,7 @@ def load_model_from_checkpoint(path_model,config):
    return model
 
 def init_trainer():
-   trainer = pl.Trainer(default_root_dir='./logging', enable_progress_bar=False,accelerator='cpu')
+   trainer = pl.Trainer(default_root_dir='./logging', enable_progress_bar=False,accelerator='gpu',devices=1)
    return trainer
 
 def generate_predictions(model,trainer,dataloader):
@@ -70,6 +72,9 @@ def save_preds(df,preds,path_model):
 if __name__=='__main__':
 
    path_model = '../Models/generalized_all_ref_loc'
+   dataset = 'Hash' #  Clemson, BonoboLocal or Hash
+   print(f'>>> runing test for {dataset} dataset <<<')
+
    
    config = get_config(path_model)
    model = load_model_from_checkpoint(path_model,config)
@@ -79,13 +84,30 @@ if __name__=='__main__':
 
    montage = build_montage(config.CHANNELS,all_referential)
    cutter = cut_and_jitter(config.WINDOWSIZE,0,config.FQ)
+
    model = load_model_from_checkpoint(path_model,config)
+   
    results = {'event_file':[],'fraction_of_yes':[],'pred':[],'ChannelLocation':[]}
    for location,keeper_channels in tqdm(location_dict.items()):
       channel_remover = keep_fixed_number_of_fixed_channels(config.CHANNELS,keeper_channels)
       transforms = [montage,cutter,normalize,channel_remover]
-      module = datamoduleLocal(transforms=transforms,batch_size=256,echo=False)
-      dataloader, df = module.test_dataloader(), get_split_dfLocal(module.df,'Test')
+
+      # get the right transforms and build dataset
+      if dataset == 'Clemson':
+         module = datamoduleClemson(transforms=transforms,batch_size=256,echo=False)
+         dataloader, df = module.test_dataloader(), module.df
+         df['fraction_of_yes'] = -1
+      elif dataset == 'BonoboLocal':
+            module = datamoduleLocal(transforms=transforms,batch_size=256,echo=False)
+            dataloader, df = module.test_dataloader(), get_split_dfLocal(module.df,'Test')
+      elif dataset =='Hash':
+            module = datamoduleHash(transforms=transforms,batch_size=256)
+            dataloader, df = module.test_dataloader(), module.df
+            df['fraction_of_yes'] = -1
+      else:
+         raise Exception('please specify dataset properly! Options: BonoboLocal, Clemson')
+      
+      # generate predictions
       preds = generate_predictions(model,trainer,dataloader)
 
       results['event_file']+=df.event_file.to_list()
@@ -94,4 +116,4 @@ if __name__=='__main__':
       results['ChannelLocation']+=[location]*len(df.event_file)
 
 results = pd.DataFrame(results)
-results.to_csv(path_model+f'/results_localized.csv',index=False)
+results.to_csv(path_model+f'/results_localized_{dataset}.csv',index=False)

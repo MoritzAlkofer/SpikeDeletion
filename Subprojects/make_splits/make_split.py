@@ -3,19 +3,19 @@ import numpy as np
 
 # datasets
 def DatasetCenter():
-    df_center = pd.read_csv('../../Data/tables/lut_event_23-08-22.csv')
+    df_center = pd.read_csv('../../tables/lut_event_23-08-22.csv')
     df_center['dataset']='center'
-    path_center = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/cluster_center/' 
+    path_center = '/media/moritz/internal_expansion/Data/Bonobo/cluster_center/' 
     df_center['path'] = path_center+df_center['event_file']+'.npy'
     return df_center
 
 def DatasetMember():
-    df_member = pd.read_csv('../../Data/tables/member_17JAN24.csv')
+    df_member = pd.read_csv('../../tables/member_17JAN24.csv')
     df_member['event_file'] = df_member.eeg_file.str.replace('.mat','', regex=True)
     df_member['patient_id']=df_member.eeg_file.str.split('_').str[0]
     df_member['total_votes_received']=8
     df_member['dataset']='member'
-    path_member = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/cluster_members/' 
+    path_member = '/media/moritz/internal_expansion/Data/Bonobo/cluster_members/' 
     df_member['path'] = path_member+df_member['event_file']+'.npy'
     return df_member
 
@@ -24,7 +24,7 @@ def DatasetControl(N=30000):
     df_control['patient_id']=df_control.eeg_file.str.split('_').str[0]
     df_control['total_votes_received']=8
     df_control['dataset']='control'
-    path_control = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/random_snippets/' 
+    path_control = '/media/moritz/internal_expansion/Data/Bonobo/random_snippets/' 
     df_control['path'] = path_control+df_control['event_file']+'.npy'
     return df_control[:N]
 
@@ -65,7 +65,7 @@ def assing_location_splits(df,df_info):
     return df
 
 if __name__=='__main__':
-    split = 'localized'
+    split = 'representative'
     np.random.seed(1)
     if split == 'representative':
         N_control = 30000

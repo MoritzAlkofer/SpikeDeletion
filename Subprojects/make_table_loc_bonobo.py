@@ -1,6 +1,6 @@
 import pandas as pd
 import sys
-import os 
+sys.path.append('../')
 from make_datamodule import datamoduleLocal, get_split_dfLocal
 
 module = datamoduleLocal(transforms=None,batch_size=256,echo=False)

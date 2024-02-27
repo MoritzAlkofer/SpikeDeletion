@@ -1,5 +1,4 @@
 from local_utils import all_referential, build_montage, remove_channels, normalize, cut_and_jitter, Config, remove_channels
-from make_datamodule import datamodule
 import wandb
 import torch
 from model import EEGTransformer
@@ -7,7 +6,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
-from make_datamodule import datamodule, datamoduleLocal
+from make_datamodule import datamoduleRep, datamoduleLocal
 
 import argparse
 from local_utils import all_referential, six_referential, two_referential, all_bipolar, six_bipolar
@@ -21,7 +20,7 @@ def get_transforms(montage_channels,storage_channels,windowsize,windowjitter,Fq,
         return transforms
     else: 
         deleter = remove_channels(montage_channels,'random')
-        transforms = [montage,cutter,normalize,deleter] 
+        transforms = [montage,cutter,deleter,normalize] 
         print('deleting random channels')
         return transforms
 
@@ -71,7 +70,7 @@ if __name__ == '__main__':
     
     transforms = get_transforms(config.CHANNELS,all_referential,config.WINDOWSIZE,config.WINDOWJITTER,config.FQ,random_delete)
     if split =='representative':
-        module = datamodule(transforms=transforms,batch_size=config.BATCH_SIZE)
+        module = datamoduleRep(transforms=transforms,batch_size=config.BATCH_SIZE)
     elif split =='localized':
         module = datamoduleLocal(transforms=transforms,batch_size=config.BATCH_SIZE)
     
