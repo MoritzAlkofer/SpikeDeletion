@@ -6,50 +6,48 @@ import os
 
 
 # transforms
-class Montage():
+class MultiMontage():
     # this version can also convert cdac monopolar montage into mgh_psg monopolar montage
     def __init__(self,montage_channels,storage_channels,echo=False):
         
-        # AVERAGE MONTAGE
-        # get list of all channels that should be displayed in average montage
-        avg_channels = [channel for channel in montage_channels if 'avg' in channel]
-        # get ids of channels 
+        avg_channels = [c for c in montage_channels if '-avg' in c]
+        bipolar_channels = [c for c in montage_channels if ('-' in c)&('avg' not in c)]
+        referential_channels = [c for c in montage_channels if '-' not in c]
 
-        self.avg_ids = np.array([storage_channels.index(channel.replace('-avg',''), regex=True) for channel in avg_channels])
-
-        # BIPOLAR MONTAGE
-        # get list of all channels that should be displayed in average montage
-        bipolar_channels = [channel for channel in montage_channels if ('avg' not in channel)&('-' in channel)]
-        # get ids of channels 
-        self.bipolar_ids = np.array([[storage_channels.index(channel.split('-')[0]), storage_channels.index(channel.split('-')[1])] for channel in bipolar_channels])
-    
-        # conversion
-        # get list of all channels that should be displayed in average montage
-        monopolar_channels = [channel for channel in montage_channels if ('avg' not in channel) and ('-' not in channel)]
-        # get ids of channels 
-        self.monopolar_ids = np.array([storage_channels.index(channel) for channel in monopolar_channels])
-    
-        if echo: print('storage channels: '+str(storage_channels))
-        if echo: print('montage channels: '+str(avg_channels+bipolar_channels+monopolar_channels))
+        self.avg_montage = AvgMontage(storage_channels,avg_channels)
+        self.bipolar_montage = BipolarMontage(storage_channels,bipolar_channels)
+        self.referential_montage = ReferentialMontage(storage_channels,referential_channels)
 
     def __call__(self,signal):
-        signals = []
-        # AVERAGE MONTAGE
-        # get average of these signals along time axis
-        if len(self.avg_ids>0):
-            avg_signal = signal[self.avg_ids].mean(axis=0).squeeze()
-            # substract average from original signal
-            avg_montaged_signal = signal[self.avg_ids] - avg_signal
-            signals.append(avg_montaged_signal)
-        if len(self.bipolar_ids)>0:
-            # BIPOLAR MONTAGE
-            bipolar_montaged_signal = signal[self.bipolar_ids[:,0]] - signal[self.bipolar_ids[:,1]]
-            signals.append(bipolar_montaged_signal)
-        if len(self.monopolar_ids>0):
-            # add monopolar channels
-            signals.append(signal[self.monopolar_ids])
+        avg_signal = self.avg_montage(signal)
+        bipolar_signal = self.bipolar_montage(signal)
+        referential_signal = self.referential_montage(signal)
 
-        signal = np.concatenate(signals)
+        signal = np.vstack([bipolar_signal,avg_signal,referential_signal])
+        return signal
+
+class BipolarMontage():
+    def __init__(self,storage_channels, bipolar_channels):
+        self.bipolar_ids = np.array([[storage_channels.index(channel.split('-')[0]), storage_channels.index(channel.split('-')[1])] for channel in bipolar_channels])
+    def __call__(self,signal):
+        signal = signal[self.bipolar_ids[:,0]] - signal[self.bipolar_ids[:,1]]
+        return signal
+
+class AvgMontage():
+    def __init__(self,storage_channels,avg_channels):
+        avg_channels = [c.replace('-avg','') for c in avg_channels]
+        self.avg_ids = np.array([storage_channels.index(channel) for channel in avg_channels])
+    def __call__(self,signal):
+        signal = signal[self.avg_ids]
+        avg = signal.mean(axis=0).squeeze()
+        signal = signal - avg
+        return signal
+
+class ReferentialMontage():
+    def __init__(self,storage_channels,referential_channels):
+        self.referential_ids = np.array([storage_channels.index(channel) for channel in referential_channels])
+    def __call__(self,signal):
+        signal = signal[self.referential_ids]
         return signal
 
 class WindowCutter():

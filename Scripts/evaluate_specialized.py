@@ -11,23 +11,16 @@ def get_args():
     parser = argparse.ArgumentParser(description='calculate AUC for model')
     parser.add_argument('--path_model',default='Models/all_channels')
     parser.add_argument('--show',action='store_true')
+    parser.add_argument('--dataset',choices= ['Rep','Loc','Clemson','Hash'])
+    parser.add_argument('--metric', choices = ['PRC','ROC','CM','Hist'])
     parser.add_argument('--save',action='store_true')
-    parser.add_argument('--metric', choices = ['PRC','ROC','CM'])
     args = parser.parse_args()
-    return args.path_model, args.show, args.save, args.metric
-
-def apply_filters(df):
-    pos = df[(df['fraction_of_yes'] >= 7/8) & (df.total_votes_received >=8) &(df.Mode=='Test')]
-    neg = df[(df.fraction_of_yes==0)&(df.Mode=='Test')]
-    N = min(len(pos),len(neg))
-    print(N)
-    df = pd.concat([pos[:N],neg[:N]])    
-    return df
+    return args.path_model, args.show, args.dataset, args.metric,args.save
 
 def get_label_and_pred(df):
     # extract labels and predictions as lists
-    labels = df.fraction_of_yes.round(0).astype(int)
-    preds = df.preds.values
+    labels = df.label.round(0).astype(int)
+    preds = df.pred.values
     return labels,preds
 
 def calculate_ro_curve(y_true,y_score):
@@ -80,6 +73,17 @@ def plot_confusion_matrix(cm):
     plt.tight_layout()
     return fig
 
+def plot_pred_hist(y_pred):
+    
+    fig = plt.figure()
+    plt.hist(y_pred,density=True)
+    plt.xlim(0,1)
+    plt.ylim(0,13)
+    plt.gca().set_aspect(1/13)
+    plt.ylabel('Normalized count')
+    plt.xlabel('Prediction')
+    return fig
+
 def create_figure(metric,y_true,y_score):
     if metric == 'ROC':
         AUC,fpr,tpr = calculate_ro_curve(y_true,y_score)
@@ -93,17 +97,18 @@ def create_figure(metric,y_true,y_score):
         accuracy, sensitivity, specificity, precision = calculate_metrics(tn,fp,fn,tp)
         print('accuracy',accuracy ,'\nsensitivity',sensitivity,'\nspecificity',specificity,'\nprecision',precision)
         fig = plot_confusion_matrix(cm)
+    elif metric=='Hist':
+        fig = plot_pred_hist(y_score)
     return fig
 
 
 if __name__=='__main__':
-    path_model, show, save, metric = get_args()
+    path_model,show,dataset,metric,save = get_args()
     # get predictions
-    df = pd.read_csv(os.path.join(path_model,'pred.csv'))
-    df = apply_filters(df)
+    df = pd.read_csv(os.path.join(path_model,f'pred_{dataset}.csv'))
     y_true,y_score = get_label_and_pred(df)
     fig = create_figure(metric,y_true,y_score)
     if show: 
         fig.show()
         input("Press enter to close")
-    if save: fig.savefig(os.path.join(path_model,f'{metric}.png'))
+    fig.savefig(os.path.join(path_model,f'{metric}_{dataset}.png'))

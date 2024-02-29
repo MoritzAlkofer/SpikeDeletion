@@ -28,15 +28,16 @@ class event_dataset():
         return x, y   
 
 class DatamoduleBase(pl.LightningDataModule):
-    def __init__(self,path_files,labels,modes,loader,transforms,batch_size,collate_fn=None):
+    def __init__(self,path_files,labels,modes,loader,batch_size=256,transforms=None,collate_fn=None):
         self.path_files = path_files
         self.event_files = [f.split('/')[-1] for f in path_files]
         self.labels = labels
         self.loader = loader
         self.modes = modes
-        self.transforms = transforms
+        self.transforms = [] if transforms ==None else transforms
         self.collate_fn = collate_fn
         self.batch_size = batch_size
+        self.prepare_data_per_node = True
 
     def build_dataloader(self,mode):
         path_files = self.get_path_files(mode)
@@ -59,14 +60,10 @@ class DatamoduleBase(pl.LightningDataModule):
         return dataloader
     
     def get_labels(self,mode):
-        msk = np.array(self.modes) == mode
-        labels = np.array(self.labels)[msk]
-        return labels
+        return [label for label, m in zip(self.labels, self.modes) if m == mode]
     
     def get_path_files(self,mode):
-        msk = np.array(self.modes) == mode
-        path_files = np.array(self.path_files)[msk]
-        return path_files
+        return [path_file for path_file, m in zip(self.path_files, self.modes) if m == mode]
 
     def get_event_files(self,mode):
         msk = np.array(self.modes) == mode
@@ -74,8 +71,8 @@ class DatamoduleBase(pl.LightningDataModule):
         return event_files
     
 class datamoduleRep(DatamoduleBase):
-    def __init__(self,transforms,batch_size):
-        df = pd.read_csv('../tables/split_representative_12FEB24.csv')
+    def __init__(self,transforms=None,batch_size=256):
+        df = pd.read_csv('/home/moritz/Desktop/programming/SpikeDeletion/tables/split_representative_12FEB24.csv')
         loader = np.load
         path_files, labels, modes = [],[],[]
         for mode in ['Train','Val','Test']:
@@ -83,7 +80,6 @@ class datamoduleRep(DatamoduleBase):
             path_files+=df_mode.path.to_list()
             labels+=df_mode.fraction_of_yes.to_list()
             modes+=[mode]*len(df_mode)
-
         super().__init__(path_files,labels,modes,loader,transforms,batch_size,collate_fn=collate_fn)
     
     def get_split_df(self,df,Mode,echo=False):
@@ -107,7 +103,6 @@ class datamoduleRep(DatamoduleBase):
 
 class datamoduleLocal(DatamoduleBase):
     def __init__(self,transforms,batch_size,echo=False):
-        super().__init__()
         df = pd.read_csv('../tables/split_local_13FEB24.csv')
         path_files, labels, modes = [],[],[]
         for mode in ['Train','Val','Test']:
@@ -119,7 +114,7 @@ class datamoduleLocal(DatamoduleBase):
 
         super().__init__(path_files,labels,modes,loader,transforms,batch_size,collate_fn)
 
-    def get_split_dfLocal(df,Mode,echo=False):
+    def get_split_df(df,Mode,echo=False):
         if Mode == 'Train':
             df = df[df.Mode==Mode]
             df = df[(df.total_votes_received>=3)|(df.fraction_of_yes==0)]
@@ -141,22 +136,21 @@ class datamoduleHash(DatamoduleBase):
     def __init__(self,transforms,batch_size):
         path_folder = '/media/moritz/Expansion/Data/bids_spikes/hashfolder/'
         df = pd.read_csv(path_folder+'/spike_location_Brandon_confirmed_23FEB24.csv')
-        path_files = [os.path.join(path_folder,'standard_processed_data',event_file+'.npy') for event_file in self.df.event_file]
-        labels = [-1]*len(self.paths)
+        path_files = [os.path.join(path_folder,'standard_processed_data',event_file+'.npy') for event_file in df.event_file]
+        labels = [1]*len(df)
         modes = ['Test']*len(labels)
         loader = np.load
         super().__init__(path_files,labels,modes,loader,transforms,batch_size,collate_fn=collate_fn)
 
 class datamoduleClemson(DatamoduleBase):
-    def __init__(self,batch_size,transforms=None,echo=False):
-        super().__init__()
-        self.df = pd.read_csv('/media/moritz/Expansion/Data/Spikes_clemson_10s/segments_list_complete.csv')
+    def __init__(self,batch_size,transforms=None):
+        df = pd.read_excel('/media/moritz/Expansion/Data/Spikes_clemson_10s/tables/segments_labels_channels_montage.xlsx')
         path_folder = '/media/moritz/Expansion/Data/Spikes_clemson_10s/preprocessed_npy'
-        path_files = [os.path.join(path_folder,event_file+'.npy') for event_file in self.df.event_file]
-        labels = [-1]*len(path_files)
-        modes = 'Test'
+        path_files = [os.path.join(path_folder,event_file+'.npy') for event_file in df.event_file]
+        labels = df.Spike.to_list()
+        modes = ['Test']*len(path_files)
         loader = np.load
-        super().__init__(path_files,labels,modes,loader,transforms,batch_size,collate_fn=collate_fn)
+        super().__init__(path_files,labels,modes,loader,batch_size,transforms,collate_fn=collate_fn)
         
 def collate_fn(batch):
     # process your batch

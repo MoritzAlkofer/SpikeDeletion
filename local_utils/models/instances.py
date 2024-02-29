@@ -6,6 +6,7 @@ from torch.nn import BCELoss
 from .transformer import BIOTEncoder
 from .heads import RegressionHead
 from .Resnet_15.net1d import Net1D
+from .Spikenet import SpikeNet
 
 class RMSELoss(nn.Module):
     def __init__(self):
@@ -98,3 +99,16 @@ class ResNetInstance(InstanceBaseClass):
     #this implementation comes with an integrated head
     def _identity(self,x):
         return x
+    
+
+class SpikeNetInstance(InstanceBaseClass):
+    def __init__(self,lr=1e-4,weight_decay=1e-4):
+        model = SpikeNet(num_classes=1)
+        print('this model comes with A TON of random hardcoded stuff!')
+        head = self._identity
+        super().__init__(model,head,lr,weight_decay)
+        
+    #this implementation comes with an integrated head
+    def _identity(self,x):
+        return x
+    

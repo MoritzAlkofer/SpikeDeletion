@@ -1,7 +1,7 @@
 import sys
 sys.path.append('../')
-from local_utils import ResNetInstance, TransformerInstance
-from local_utils import Montage, WindowCutter, KeepRandomChannels
+from local_utils import ResNetInstance, TransformerInstance, SpikeNetInstance
+from local_utils import MultiMontage, WindowCutter, KeepRandomChannels
 from local_utils import all_referential
 from local_utils import datamoduleRep, datamoduleClemson, datamoduleHash, datamoduleLocal
 import pytorch_lightning as pl
@@ -10,7 +10,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import WandbLogger
 
 def init_transforms(random_drop,montage_channels,storage_channels,windowsize,windowjitter,Fs):
-    montage = Montage(montage_channels,storage_channels)
+    montage = MultiMontage(montage_channels,storage_channels)
     cutter = WindowCutter(windowsize,windowjitter,Fs)
     if random_drop == False:
         return [montage,cutter]
