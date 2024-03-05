@@ -1,4 +1,5 @@
-
+import os
+import json
 import sys
 sys.path.append('../')
 from local_utils import ResNetInstance, TransformerInstance, SpikeNetInstance
@@ -87,24 +88,41 @@ def get_args():
     args = parser.parse_args()
     return args.path_model, args.architecture, args.montage_channels, args.channel_drop, args.dataset
 
+def default_params():
+    params = {'windowsize':1,
+              'windowjitter':0.1,
+              'Fs':128,
+              'batch_size':128,
+              'lr':1e-4,
+              'weight_decay':1e-4,
+              'scale_percent':0.1
+                 }
+    return params
+
+def save_params(path_model,params):
+    with open(os.path.join(path_model,'params.json'), 'w') as fp:
+        json.dump(params, fp)
+
 if __name__ == '__main__':
-    storage_channels = all_referential
-
-    windowsize = 1
-    windowjitter = 0.1
-    Fs = 128
-    batch_size = 128
-    lr = 1e-4
-    weight_decay = 1e-4
-    scale_percent = 0.1
-
     path_model, architecture, montage_channels_name, channel_drop, dataset = get_args()
-    montage_channels = get_montage_channels(montage_channels_name)
 
-    transforms = init_transforms(channel_drop,storage_channels,montage_channels,windowsize,windowjitter,Fs,scale_percent)
-    modelinstance = get_model(architecture,len(montage_channels),lr,weight_decay)
+    storage_channels = all_referential
+    #montage_channels_name = 'all_referential'
+    montage_channels = get_montage_channels(montage_channels_name)
+    
+    #path_model ='../Models/generalized_SpikeNet'
+    #architecture = 'SpikeNet'
+    params = default_params()
+    params['architecture'] = architecture
+    params['montage_channels'] = montage_channels
+    params['n_channels'] = len(montage_channels)
+    save_params(path_model,params)
+
+    transforms = init_transforms(channel_drop,storage_channels,montage_channels,
+                                 params['windowsize'],params['windowjitter'],params['Fs'],params['scale_percent'])
+    modelinstance = get_model(params['architecture'],params['n_channels'],params['lr'],params['weight_decay'])
     modelinstance.to('cuda')
-    module = get_datamodule(dataset,transforms,batch_size)
+    module = get_datamodule(dataset,transforms,params['batch_size'])
     callbacks = init_callbacks(path_model=path_model)
     wandb_logger = WandbLogger(project='SpikeTransformer') 
     trainer = pl.Trainer(max_epochs=300, logger=wandb_logger, callbacks=callbacks, devices=1)
