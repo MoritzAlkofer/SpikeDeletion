@@ -40,6 +40,7 @@ def plot_ro_curve(AUC,fpr,tpr):
     # workaround for tresholds are too high
     plt.plot(fpr,tpr,label=f'Area under the curve: {AUC:.3f}')
     plt.plot([0,1], [0, 1], linestyle='--')
+    plt.gca().set_aspect(1)
     plt.xlabel('false positive rate')
     plt.ylabel('true positive rate')
     plt.legend(loc="lower right")
@@ -52,6 +53,7 @@ def plot_pr_curve(AUC,precision,recall):
     plt.plot(recall,precision,label=f'Area under the curve: {AUC:.3f}')
     plt.plot([0,1], [0.5, 0.5], linestyle='--')
     plt.xlabel('recall')
+    plt.gca().set_aspect(1)
     plt.ylabel('precision')
     plt.legend(loc="lower right")
     plt.title('Precision recall curve')

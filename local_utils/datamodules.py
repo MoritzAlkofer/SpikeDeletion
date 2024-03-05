@@ -29,8 +29,9 @@ class event_dataset():
 
 class DatamoduleBase(pl.LightningDataModule):
     def __init__(self,path_files,labels,modes,loader,batch_size=256,transforms=None,collate_fn=None):
+        super().__init__()
         self.path_files = path_files
-        self.event_files = [f.split('/')[-1] for f in path_files]
+        self.event_files = [f.split('/')[-1].split('.')[0] for f in path_files]
         self.labels = labels
         self.loader = loader
         self.modes = modes
@@ -38,6 +39,7 @@ class DatamoduleBase(pl.LightningDataModule):
         self.collate_fn = collate_fn
         self.batch_size = batch_size
         self.prepare_data_per_node = True
+
 
     def build_dataloader(self,mode):
         path_files = self.get_path_files(mode)
@@ -70,17 +72,26 @@ class DatamoduleBase(pl.LightningDataModule):
         event_files = np.array(self.event_files)[msk]
         return event_files
     
+
+class np_loader():
+    def __init__(self):
+        pass
+    def __call__(self,path_signal):
+        signal = np.load(path_signal)
+        signal = np.nan_to_num(signal)
+        return signal
+    
 class datamoduleRep(DatamoduleBase):
-    def __init__(self,transforms=None,batch_size=256):
+    def __init__(self,batch_size=256,transforms=None):
         df = pd.read_csv('/home/moritz/Desktop/programming/SpikeDeletion/tables/split_representative_12FEB24.csv')
-        loader = np.load
+        loader = np_loader()
         path_files, labels, modes = [],[],[]
         for mode in ['Train','Val','Test']:
             df_mode = self.get_split_df(df,mode)
             path_files+=df_mode.path.to_list()
             labels+=df_mode.fraction_of_yes.to_list()
             modes+=[mode]*len(df_mode)
-        super().__init__(path_files,labels,modes,loader,transforms,batch_size,collate_fn=collate_fn)
+        super().__init__(path_files,labels,modes,loader,batch_size,transforms,collate_fn=collate_fn)
     
     def get_split_df(self,df,Mode,echo=False):
         if Mode == 'Train':
@@ -102,7 +113,7 @@ class datamoduleRep(DatamoduleBase):
         return df
 
 class datamoduleLocal(DatamoduleBase):
-    def __init__(self,transforms,batch_size,echo=False):
+    def __init__(self,batch_size,transforms):
         df = pd.read_csv('../tables/split_local_13FEB24.csv')
         path_files, labels, modes = [],[],[]
         for mode in ['Train','Val','Test']:
@@ -112,7 +123,7 @@ class datamoduleLocal(DatamoduleBase):
             modes+=[mode]*len(df_mode)
         loader = np.load
 
-        super().__init__(path_files,labels,modes,loader,transforms,batch_size,collate_fn)
+        super().__init__(path_files,labels,modes,loader,batch_size,transforms,collate_fn)
 
     def get_split_df(df,Mode,echo=False):
         if Mode == 'Train':
@@ -133,14 +144,14 @@ class datamoduleLocal(DatamoduleBase):
         return df
 
 class datamoduleHash(DatamoduleBase):
-    def __init__(self,transforms,batch_size):
+    def __init__(self,batch_size,transforms):
         path_folder = '/media/moritz/Expansion/Data/bids_spikes/hashfolder/'
         df = pd.read_csv(path_folder+'/spike_location_Brandon_confirmed_23FEB24.csv')
         path_files = [os.path.join(path_folder,'standard_processed_data',event_file+'.npy') for event_file in df.event_file]
         labels = [1]*len(df)
         modes = ['Test']*len(labels)
         loader = np.load
-        super().__init__(path_files,labels,modes,loader,transforms,batch_size,collate_fn=collate_fn)
+        super().__init__(path_files,labels,modes,loader,batch_size,transforms,collate_fn=collate_fn)
 
 class datamoduleClemson(DatamoduleBase):
     def __init__(self,batch_size,transforms=None):
@@ -150,7 +161,7 @@ class datamoduleClemson(DatamoduleBase):
         labels = df.Spike.to_list()
         modes = ['Test']*len(path_files)
         loader = np.load
-        super().__init__(path_files,labels,modes,loader,batch_size,transforms,collate_fn=collate_fn)
+        super().__init__(path_files,labels,modes,loader,batch_size,transforms,collate_fn)
         
 def collate_fn(batch):
     # process your batch

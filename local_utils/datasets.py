@@ -1,49 +1,5 @@
 import pandas as pd 
 from .channel_lists import all_referential
-import pickle
-import os
-from dataclasses import dataclass, field
-
-@dataclass
-class Config:
-    # Signal parameters
-    FQ: int = 128 # Hz
-    
-    # Preprocessing 
-    WINDOWSIZE: int = 10 # seconds
-    WINDOWJITTER: int = 2.5 # seconds
-    # weird thing to add list to dataclass
-    # solution found here: https://stackoverflow.com/questions/53632152/why-cant-dataclasses-have-mutable-defaults-in-their-class-attributes-declaratio
-    CHANNELS: list = field(default_factory=lambda: all_referential)
-
-	# Model parameters
-    N_FFT: int = 128
-    HOP_LENGTH: int = 64
-    HEAD_DROPOUT: int = 0.3
-    EMB_SIZE: int = 256
-    HEADS: int = 8
-    DEPTH: int = 4
-    WEIGHT_DECAY: float = 1e-4
-    SIGNAL_MAX: int = 1000
-    SIGNAL_MIN: int = 20
-
-    # training parameters
-    BATCH_SIZE: int = 128
-    LR: float = 1e-4
-
-
-    def print_config(self):
-        print('THIS CONFIG FILE CONTAINS THE FOLLOWING PARAMETERS :\n')
-        for key, value in self.__dict__.items():
-            print(key, value)
-        print('\n')
-
-    def save_config(self, path):
-        if not os.path.isdir(path):
-            os.makedirs(path)
-        # save config to model_path using pickle
-        with open(os.path.join(path, 'config.pkl'), 'wb') as f:
-            pickle.dump(self, f)     
 
 def dataset_center():
     # returns high confidence dataframe, path and storage channels

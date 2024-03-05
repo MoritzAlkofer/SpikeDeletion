@@ -100,10 +100,9 @@ class ResNetInstance(InstanceBaseClass):
     def _identity(self,x):
         return x
     
-
 class SpikeNetInstance(InstanceBaseClass):
-    def __init__(self,lr=1e-4,weight_decay=1e-4):
-        model = SpikeNet(num_classes=1)
+    def __init__(self,n_channels,lr=1e-4,weight_decay=1e-4):
+        model = SpikeNet(eeg_channels=n_channels)
         print('this model comes with A TON of random hardcoded stuff!')
         head = self._identity
         super().__init__(model,head,lr,weight_decay)
@@ -111,4 +110,3 @@ class SpikeNetInstance(InstanceBaseClass):
     #this implementation comes with an integrated head
     def _identity(self,x):
         return x
-    

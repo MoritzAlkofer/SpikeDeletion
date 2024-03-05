@@ -4,28 +4,6 @@ import scipy
 from scipy.signal import iirnotch
 import os
 
-
-# transforms
-class MultiMontage():
-    # this version can also convert cdac monopolar montage into mgh_psg monopolar montage
-    def __init__(self,montage_channels,storage_channels,echo=False):
-        
-        avg_channels = [c for c in montage_channels if '-avg' in c]
-        bipolar_channels = [c for c in montage_channels if ('-' in c)&('avg' not in c)]
-        referential_channels = [c for c in montage_channels if '-' not in c]
-
-        self.avg_montage = AvgMontage(storage_channels,avg_channels)
-        self.bipolar_montage = BipolarMontage(storage_channels,bipolar_channels)
-        self.referential_montage = ReferentialMontage(storage_channels,referential_channels)
-
-    def __call__(self,signal):
-        avg_signal = self.avg_montage(signal)
-        bipolar_signal = self.bipolar_montage(signal)
-        referential_signal = self.referential_montage(signal)
-
-        signal = np.vstack([bipolar_signal,avg_signal,referential_signal])
-        return signal
-
 class BipolarMontage():
     def __init__(self,storage_channels, bipolar_channels):
         self.bipolar_ids = np.array([[storage_channels.index(channel.split('-')[0]), storage_channels.index(channel.split('-')[1])] for channel in bipolar_channels])
@@ -196,3 +174,4 @@ class StandardFilter():
     def get_band_param(Fs,lowcut,highcut,order=6):
         b, a = scipy.signal.butter(order, [lowcut, highcut], btype='bandpass', fs=Fs)
         return b,a 
+

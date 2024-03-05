@@ -31,16 +31,15 @@ def generate_predictions(model,trainer,dataloader):
    preds = np.concatenate(preds).squeeze()
    return preds
 
-
-def get_datamodule(dataset,transforms,batch_size):
+def get_datamodule(dataset,batch_size,transforms):
     if dataset =='Rep':
-        module = datamoduleRep(transforms=transforms,batch_size=batch_size)
+        module = datamoduleRep(batch_size,transforms)
     elif dataset == 'Loc':
-        module = datamoduleLocal(transforms,batch_size)
+        module = datamoduleLocal(batch_size,transforms)
     elif dataset == 'Clemson':
-        module = datamoduleClemson(transforms,batch_size)
+        module = datamoduleClemson(batch_size,transforms)
     elif dataset == 'Hash':
-        module = datamoduleHash(transforms,batch_size)
+        module = datamoduleHash(batch_size,transforms)
     else: 
         raise ValueError('Please specify dataset correctly! Options are: Rep, Loc, Clemson, Hash')
     return module
@@ -61,7 +60,7 @@ if __name__ == '__main__':
     transforms = init_transforms(montage_channels,storage_channels,windowsize,windowjitter,Fs)
     
     print('there is an increase added to the trasforms!')
-    module = get_datamodule(dataset,transforms,batch_size=128)
+    module = get_datamodule(dataset,batch_size=128,transforms=transforms)
     dataloader = module.test_dataloader()
     trainer = pl.Trainer(max_epochs=300, devices=1)
     preds = generate_predictions(model,trainer,dataloader)
