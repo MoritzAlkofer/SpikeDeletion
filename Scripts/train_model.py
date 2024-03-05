@@ -1,5 +1,6 @@
 import os
 import json
+import numpy as np
 import sys
 sys.path.append('../')
 from local_utils import ResNetInstance, TransformerInstance, SpikeNetInstance
@@ -27,7 +28,7 @@ def init_transforms(channel_drop,storage_channels,montage_channels,windowsize,wi
     scaler = RandomScaler(scale_percent=scale_percent)
     flipper = ChannelFlipper(channels=montage_channels,p=0.5)
 
-    transforms = [montage,cutter,scaler,flipper]
+    transforms = [montage,cutter,scaler,flipper,np.nan_to_num]
 
     if channel_drop:
         dropper = KeepRandomChannels(len(montage_channels))
@@ -55,7 +56,7 @@ def get_datamodule(dataset,transforms,batch_size):
     if dataset =='Rep':
         module = datamoduleRep(transforms=transforms,batch_size=batch_size)
     elif dataset == 'Loc':
-        module = datamoduleLocal(transforms,batch_size)
+        module = datamoduleLocal(transforms=transforms,batch_size=batch_size)
     elif dataset == 'Clemson':
         module = datamoduleClemson(transforms,batch_size)
     elif dataset == 'Hash':
@@ -105,7 +106,7 @@ def save_params(path_model,params):
 
 if __name__ == '__main__':
     path_model, architecture, montage_channels_name, channel_drop, dataset = get_args()
-
+    
     storage_channels = all_referential
     #montage_channels_name = 'all_referential'
     montage_channels = get_montage_channels(montage_channels_name)
