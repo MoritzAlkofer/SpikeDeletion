@@ -26,8 +26,6 @@ def init_location_dict():
          'general':['Fp1','F3','C3','P3','F7','T3','T5','O1', 'Fz','Cz','Pz', 'Fp2','F4','C4','P4','F8','T4','T6','O2']}
    return location_dict
 
-x = "'frontal':['F3','F4'],         'parietal':['P3','P4'],         'occipital':['O1','O2'],         'temporal':['T3','T4'],         'central':['C3','C4'],         'general':['Fp1','F3','C3','P3','F7','T3','T5','O1', 'Fz','Cz','Pz', 'Fp2','F4','C4','P4','F8','T4','T6','O2']}"
-x.replace("'","").replace('[','').replace('',']')
 class keep_fixed_number_of_fixed_channels():
     # init with total number of channels + channels to be retained
     # use: input, signal, list of channels to be retained
@@ -72,10 +70,9 @@ def save_preds(df,preds,path_model):
 if __name__=='__main__':
 
    path_model = '../Models/generalized_all_ref_loc'
-   dataset = 'Hash' #  Clemson, BonoboLocal or Hash
+   dataset = 'BonoboLocal' #  Clemson, BonoboLocal or Hash
    print(f'>>> runing test for {dataset} dataset <<<')
 
-   
    config = get_config(path_model)
    model = load_model_from_checkpoint(path_model,config)
    trainer = init_trainer()
