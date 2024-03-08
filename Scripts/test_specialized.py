@@ -6,6 +6,7 @@ import os
 import pickle
 import torch
 from spikenet_model import SpikeNetInstance
+from model import EEGTransformer
 import pytorch_lightning as pl
 import argparse
 
@@ -71,12 +72,12 @@ def get_dataset(dataset):
 
 if __name__=='__main__':
 
-   path_model = '../Models/transformer_specialized_two_ref_rep'
+   path_model = '../Models/specialized_to_referential_aug'
    dataset = 'Rep'
    config = get_config(path_model)
    transforms = get_transforms(config.CHANNELS,all_referential,1,0,128)
    dataloader,df = get_dataset(dataset)
-   model = load_model_from_checkpoint(path_model,config,len(config.CHANNELS))
+   model = load_model_from_checkpoint(path_model,config,len(config.CHANNELS),architecture=config.ARCHITECTURE)
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')
    preds = generate_predictions(model,trainer,dataloader)

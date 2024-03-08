@@ -2,11 +2,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-path_model = '../Models/SpikeNet_gen_rep_aug/'
+path_model = '../Models/gen_rep_test_no_norm/'
 df = pd.read_csv(os.path.join(path_model,'results_deleted.csv'))
 
 fig = plt.figure()
-x = np.arange(0,20)
+x = np.arange(0,19)
 y = df.groupby('n_keeper').mean('AUROC').AUROC 
 yerr = df.groupby('n_keeper').AUROC.std()
 plt.errorbar(x,y,yerr,label='random')

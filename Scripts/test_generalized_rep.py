@@ -55,7 +55,7 @@ def get_args():
 
 if __name__=='__main__':
 
-   path_model = '../Models/SpikeNet_gen_rep_aug'
+   path_model = '../Models/specialized_two_referential_aug'
    architecture ='SpikeNet'
    path_data = '/media/moritz/internal_expansion/Data/Bonobo/cluster_center/' 
    config = get_config(path_model)
@@ -78,7 +78,7 @@ if __name__=='__main__':
          labels = df.fraction_of_yes.round(0).astype(int)
          fpr, tpr, thresholds = roc_curve(labels, preds)
          roc_auc = auc(fpr, tpr)
-
+         print(f'n_keeper: {n_keeper}, AUROC: {roc_auc}')
          results['n_keeper'].append(n_keeper)
          results['run'].append(run)
          results['AUROC'].append(roc_auc)

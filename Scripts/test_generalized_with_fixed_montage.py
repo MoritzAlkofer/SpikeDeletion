@@ -7,6 +7,7 @@ import numpy as np
 import os
 import pickle
 import torch
+from model import EEGTransformer
 from spikenet_model import SpikeNetInstance
 import pytorch_lightning as pl
 import argparse
@@ -16,9 +17,22 @@ def get_config(path_model):
       config = pickle.load(f)
    return config
 
-def load_model_from_checkpoint(path_model,config,n_channels):
-   model = SpikeNetInstance.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),n_channels=n_channels,map_location=torch.device('cuda'))                        
+def load_model_from_checkpoint(path_model,config,n_channels,architecture='SpikeNet'):
+   if architecture =='SpikeNet':
+      model = SpikeNetInstance.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),n_channels=n_channels,map_location=torch.device('cuda'))                        
+   elif architecture=='Transformer':
+      model = EEGTransformer.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),
+                                          lr=config.LR,
+                                          head_dropout=config.HEAD_DROPOUT,
+                                          n_channels=len(config.CHANNELS),
+                                          n_fft=config.N_FFT,
+                                          hop_length=config.HOP_LENGTH,
+                                          heads = config.HEADS,
+                                          depth=config.DEPTH,
+                                          emb_size = config.EMB_SIZE,
+                                          weight_decay = config.WEIGHT_DECAY)
    return model
+
 
 def init_trainer():
    trainer = pl.Trainer(default_root_dir='./logging', enable_progress_bar=False,devices=1)
@@ -70,7 +84,7 @@ channel_dict = {'all_referential': all_referential,
 
 if __name__=='__main__':
 
-   path_model = '../Models/SpikeNet_gen_rep_aug'
+   path_model = '../Models/trans_gen_rep'
    os.listdir(path_model)
    dataset = 'Rep'
    keeper_channels = 'all_referential'
@@ -88,7 +102,7 @@ if __name__=='__main__':
          df = module.df
          df = df.rename(columns={'label':'total_votes_received'})
          df['total_votes_received']=8
-   model = load_model_from_checkpoint(path_model,config,len(config.CHANNELS))
+   model = load_model_from_checkpoint(path_model,config,len(config.CHANNELS),config.ARCHITECTURE)
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')
    preds = generate_predictions(model,trainer,dataloader)
