@@ -1,0 +1,571 @@
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:617: UserWarning: Checkpoint directory /home/moritz/Desktop/programming/SpikeDeletion_clean/test exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+  | Name  | Type         | Params
+---------------------------------------
+0 | model | SpikeNet     | 363 K
+1 | head  | SpikeNetHead | 257
+2 | RMSE  | RMSELoss     | 0
+3 | loss  | BCELoss      | 0
+---------------------------------------
+364 K     Trainable params
+0         Non-trainable params
+364 K     Total params
+1.457     Total estimated model params size (MB)
+
+
+
+
+
+
+
+
+
+Epoch 2: 100%|█████████████████████| 764/764 [00:06<00:00, 124.23it/s, v_num=nkyr, val_loss=0.549, val_RMSE=0.303, train_loss=0.519, train_RMSE=0.314]
+
+
+
+
+
+
+
+
+
+Epoch 5: 100%|█████████████████████| 764/764 [00:06<00:00, 115.70it/s, v_num=nkyr, val_loss=0.515, val_RMSE=0.281, train_loss=0.474, train_RMSE=0.286]
+
+
+
+
+
+
+
+
+
+Epoch 8: 100%|█████████████████████| 764/764 [00:06<00:00, 125.59it/s, v_num=nkyr, val_loss=0.499, val_RMSE=0.270, train_loss=0.461, train_RMSE=0.278]
+
+
+
+
+
+
+
+
+
+Epoch 11: 100%|████████████████████| 764/764 [00:06<00:00, 119.89it/s, v_num=nkyr, val_loss=0.493, val_RMSE=0.265, train_loss=0.453, train_RMSE=0.272]
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 15: 100%|████████████████████| 764/764 [00:06<00:00, 123.35it/s, v_num=nkyr, val_loss=0.482, val_RMSE=0.260, train_loss=0.445, train_RMSE=0.267]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 20: 100%|█| 764/764 [00:06<00:00, 118.31it/s, v_num=nkyr, val_loss=0.475, val_RMSE=0.256, train_lo
+
+
+Epoch 21: 100%|█| 764/764 [00:05<00:00, 134.08it/s, v_num=nkyr, val_loss=0.480, val_RMSE=0.258, train_lo
+
+
+
+
+
+
+Epoch 23: 100%|█| 764/764 [00:06<00:00, 114.76it/s, v_num=nkyr, val_loss=0.476, val_RMSE=0.258, train_lo
+
+
+Epoch 24: 100%|█| 764/764 [00:05<00:00, 130.27it/s, v_num=nkyr, val_loss=0.482, val_RMSE=0.259, train_lo
+
+
+
+
+
+
+
+
+
+Epoch 27: 100%|█| 764/764 [00:06<00:00, 116.74it/s, v_num=nkyr, val_loss=0.481, val_RMSE=0.261, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 31: 100%|█| 764/764 [00:05<00:00, 130.08it/s, v_num=nkyr, val_loss=0.474, val_RMSE=0.254, train_lo
+
+
+
+
+
+
+Epoch 33: 100%|█| 764/764 [00:06<00:00, 119.54it/s, v_num=nkyr, val_loss=0.475, val_RMSE=0.254, train_lo
+
+
+
+
+
+
+
+
+
+Epoch 36: 100%|█| 764/764 [00:06<00:00, 117.38it/s, v_num=nkyr, val_loss=0.470, val_RMSE=0.251, train_lo
+
+
+
+
+
+
+
+
+
+Epoch 39: 100%|█| 764/764 [00:06<00:00, 126.72it/s, v_num=nkyr, val_loss=0.474, val_RMSE=0.252, train_lo
+
+
+
+
+
+
+
+
+
+Epoch 42: 100%|█| 764/764 [00:06<00:00, 124.51it/s, v_num=nkyr, val_loss=0.468, val_RMSE=0.250, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 46: 100%|█| 764/764 [00:06<00:00, 119.73it/s, v_num=nkyr, val_loss=0.463, val_RMSE=0.247, train_lo
+
+
+
+
+
+
+
+
+
+Epoch 49: 100%|█| 764/764 [00:06<00:00, 122.73it/s, v_num=nkyr, val_loss=0.474, val_RMSE=0.250, train_lo
+
+
+
+
+
+
+Epoch 51: 100%|█| 764/764 [00:06<00:00, 118.05it/s, v_num=nkyr, val_loss=0.469, val_RMSE=0.247, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 55: 100%|█| 764/764 [00:06<00:00, 125.43it/s, v_num=nkyr, val_loss=0.460, val_RMSE=0.242, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 60: 100%|█| 764/764 [00:05<00:00, 128.78it/s, v_num=nkyr, val_loss=0.470, val_RMSE=0.247, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 66: 100%|████████████████████| 764/764 [00:06<00:00, 121.59it/s, v_num=nkyr, val_loss=0.467, val_RMSE=0.243, train_loss=0.414, train_RMSE=0.245]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 71: 100%|█| 764/764 [00:06<00:00, 114.15it/s, v_num=nkyr, val_loss=0.469, val_RMSE=0.246, train_lo
+
+
+
+
+
+
+Epoch 73: 100%|█| 764/764 [00:06<00:00, 118.88it/s, v_num=nkyr, val_loss=0.454, val_RMSE=0.240, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 78: 100%|████████████████████| 764/764 [00:06<00:00, 116.25it/s, v_num=nkyr, val_loss=0.456, val_RMSE=0.238, train_loss=0.410, train_RMSE=0.242]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 86: 100%|████████████████████| 764/764 [00:05<00:00, 132.51it/s, v_num=nkyr, val_loss=0.461, val_RMSE=0.243, train_loss=0.408, train_RMSE=0.241]
+
+
+
+
+
+
+
+
+
+Epoch 89: 100%|████████████████████| 764/764 [00:05<00:00, 127.48it/s, v_num=nkyr, val_loss=0.459, val_RMSE=0.243, train_loss=0.408, train_RMSE=0.240]
+
+
+Epoch 90: 100%|████████████████████| 764/764 [00:05<00:00, 128.01it/s, v_num=nkyr, val_loss=0.451, val_RMSE=0.236, train_loss=0.407, train_RMSE=0.240]
+
+
+Epoch 91: 100%|████████████████████| 764/764 [00:05<00:00, 133.03it/s, v_num=nkyr, val_loss=0.460, val_RMSE=0.241, train_loss=0.407, train_RMSE=0.241]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 99: 100%|█| 764/764 [00:06<00:00, 121.62it/s, v_num=nkyr, val_loss=0.459, val_RMSE=0.239, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 103: 100%|█| 764/764 [00:05<00:00, 135.25it/s, v_num=nkyr, val_loss=0.453, val_RMSE=0.238, train_l
+
+
+
+
+
+
+
+
+
+Epoch 106: 100%|█| 764/764 [00:06<00:00, 121.64it/s, v_num=nkyr, val_loss=0.448, val_RMSE=0.235, train_l
+
+
+
+
+
+
+
+
+
+Epoch 109: 100%|█| 764/764 [00:06<00:00, 116.30it/s, v_num=nkyr, val_loss=0.451, val_RMSE=0.236, train_l
+
+
+
+
+
+
+Epoch 111: 100%|█| 764/764 [00:06<00:00, 121.94it/s, v_num=nkyr, val_loss=0.459, val_RMSE=0.240, train_l
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 117: 100%|█| 764/764 [00:06<00:00, 119.10it/s, v_num=nkyr, val_loss=0.456, val_RMSE=0.239, train_l
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 122: 100%|█| 764/764 [00:06<00:00, 119.07it/s, v_num=nkyr, val_loss=0.461, val_RMSE=0.240, train_l
+
+
+Epoch 123: 100%|█| 764/764 [00:05<00:00, 128.89it/s, v_num=nkyr, val_loss=0.467, val_RMSE=0.241, train_l
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 127: 100%|█| 764/764 [00:06<00:00, 123.86it/s, v_num=nkyr, val_loss=0.452, val_RMSE=0.237, train_l
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 135: 100%|█| 764/764 [00:05<00:00, 129.08it/s, v_num=nkyr, val_loss=0.455, val_RMSE=0.234, train_l
+
+
+
+
+
+
+
+
+
+Epoch 138: 100%|█| 764/764 [00:06<00:00, 121.90it/s, v_num=nkyr, val_loss=0.446, val_RMSE=0.230, train_l
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 142: 100%|█| 764/764 [00:06<00:00, 126.67it/s, v_num=nkyr, val_loss=0.453, val_RMSE=0.238, train_l
+
+
+
+
+
+
+Epoch 144: 100%|█| 764/764 [00:06<00:00, 125.24it/s, v_num=nkyr, val_loss=0.447, val_RMSE=0.232, train_l
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 149: 100%|█| 764/764 [00:06<00:00, 122.02it/s, v_num=nkyr, val_loss=0.454, val_RMSE=0.235, train_l
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 153: 100%|█| 764/764 [00:06<00:00, 125.67it/s, v_num=nkyr, val_loss=0.447, val_RMSE=0.232, train_l
+
+
+
+
+
+
+
+
+
+Epoch 156: 100%|█| 764/764 [00:06<00:00, 123.65it/s, v_num=nkyr, val_loss=0.454, val_RMSE=0.238, train_l
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 160: 100%|█| 764/764 [00:06<00:00, 122.11it/s, v_num=nkyr, val_loss=0.450, val_RMSE=0.235, train_l
+
+
+
+
+
+
+
+
+
+
+
+Epoch 164:  20%|▏| 152/764 [00:01<00:05, 115.54it/s, v_num=nkyr, val_loss=0.453, val_RMSE=0.236, train_l
+/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py:53: UserWarning: Detected KeyboardInterrupt, attempting graceful shutdown...
+  rank_zero_warn("Detected KeyboardInterrupt, attempting graceful shutdown...")
