@@ -34,7 +34,7 @@ def get_args():
 
 if __name__=='__main__':
 
-   path_model = 'Models/gen_ref_rep'
+   path_model = get_args()
    config = get_config(path_model)
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')
@@ -44,7 +44,7 @@ if __name__=='__main__':
    model = load_model_from_checkpoint(path_model,config)
    transforms = [montage,cutter,normalize]
 
-   n_runs = 1
+   n_runs = 3
    results = {'n_keeper':[],'run':[],'AUROC':[]}
 
    for n_keeper in tqdm(range(len(config['CHANNELS'])+1)):
@@ -59,6 +59,7 @@ if __name__=='__main__':
          fpr, tpr, thresholds = roc_curve(labels, preds)
          roc_auc = auc(fpr, tpr)
          
+         print(f'n_channels {n_keeper}, auc {roc_auc}')
          results['n_keeper'].append(n_keeper), 
          results['run'].append(run), 
          results['AUROC'].append(roc_auc)

@@ -1,8 +1,16 @@
+import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-path_model = 'Models/test/'
+
+def get_args():
+    parser = argparse.ArgumentParser(description='Train model with different montages')
+    parser.add_argument('--path_model')
+    args = parser.parse_args()
+    return args.path_model
+
+path_model = get_args()
 df = pd.read_csv(os.path.join(path_model,'results_deleted.csv'))
 
 fig = plt.figure()

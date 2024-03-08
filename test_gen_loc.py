@@ -47,9 +47,9 @@ if __name__=='__main__':
    results = {'event_file':[],'fraction_of_yes':[],'pred':[],'ChannelLocation':[]}
    for location,keeper_channels in tqdm(location_dict.items()):
         channel_remover = KeepFixedChannels(config['CHANNELS'],keeper_channels)
+
         module = get_datamodule(dataset,transforms+[channel_remover])
-        data,label = next(iter(module.test_dataloader()))
-        data[0,:,:5]
+        
         preds = generate_predictions(model,trainer,module.test_dataloader())
         
         results['event_file']+=module.get_event_files('Test')
