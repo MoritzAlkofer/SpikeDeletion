@@ -13,8 +13,9 @@ def get_args():
     parser.add_argument('--show',action='store_true')
     parser.add_argument('--save',action='store_true')
     parser.add_argument('--metric', choices = ['PRC','ROC','CM'])
+    parser.add_argument('--dataset')
     args = parser.parse_args()
-    return args.path_model, args.show, args.save, args.metric
+    return args.path_model, args.show, args.save, args.metric, args.dataset
 
 def apply_filters(df):
     pos = df[(df['fraction_of_yes'] >= 7/8) & (df.total_votes_received >=8) &(df.Mode=='Test')]
@@ -97,13 +98,13 @@ def create_figure(metric,y_true,y_score):
 
 
 if __name__=='__main__':
-    path_model, show, save, metric = get_args()
+    path_model, show, save, metric,dataset = get_args()
     # get predictions
-    df = pd.read_csv(os.path.join(path_model,'pred.csv'))
+    df = pd.read_csv(os.path.join(path_model,f'pred_{dataset}.csv'))
     df = apply_filters(df)
     y_true,y_score = get_label_and_pred(df)
     fig = create_figure(metric,y_true,y_score)
     if show: 
         fig.show()
         input("Press enter to close")
-    if save: fig.savefig(os.path.join(path_model,f'{metric}.png'))
+    if save: fig.savefig(os.path.join(path_model,f'{metric}_{dataset}.png'))

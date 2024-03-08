@@ -1,5 +1,7 @@
+import sys
+sys.path.append('../')
 from utils import remove_channels, build_montage,normalize, cut_and_jitter, Config
-from utils import all_referential
+from utils import all_referential, six_referential, two_referential, six_bipolar
 from make_datamodule import datamodule, get_split_df, datamoduleClemson
 import numpy as np
 import os
@@ -14,20 +16,8 @@ def get_config(path_model):
       config = pickle.load(f)
    return config
 
-def load_model_from_checkpoint(path_model,config,n_channels,architecture='SpikeNet'):
-   if architecture =='SpikeNet':
-      model = SpikeNetInstance.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),n_channels=n_channels,map_location=torch.device('cuda'))                        
-   elif architecture=='Transformer':
-      model = EEGTransformer.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),
-                                          lr=config.LR,
-                                          head_dropout=config.HEAD_DROPOUT,
-                                          n_channels=len(config.CHANNELS),
-                                          n_fft=config.N_FFT,
-                                          hop_length=config.HOP_LENGTH,
-                                          heads = config.HEADS,
-                                          depth=config.DEPTH,
-                                          emb_size = config.EMB_SIZE,
-                                          weight_decay = config.WEIGHT_DECAY)
+def load_model_from_checkpoint(path_model,config,n_channels):
+   model = SpikeNetInstance.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),n_channels=n_channels,map_location=torch.device('cuda'))                        
    return model
 
 def init_trainer():
@@ -39,10 +29,10 @@ def generate_predictions(model,trainer,dataloader):
    preds = np.concatenate(preds).squeeze()
    return preds
 
-def save_preds(df,preds,path_model,dataset):
+def save_preds(df,preds,path_model,savename):
    df['preds'] = preds
    df = df[['event_file','preds','total_votes_received','fraction_of_yes','Mode']]
-   df.to_csv(path_model+f'/pred_{dataset}.csv',index=False)
+   df.to_csv(os.path.join(path_model,savename),index=False)
 
 def get_args():
     parser = argparse.ArgumentParser(description='Train model with different montages')
@@ -50,14 +40,45 @@ def get_args():
     args = parser.parse_args()
     return args.path_model
 
+class keep_fixed_number_of_fixed_channels():
+    # init with total number of channels + channels to be retained
+    # use: input, signal, list of channels to be retained
+    # output: zero masked signal with *channels from list retained*
+    def __init__(self,montage_channels,keeper_channels):
+        self.montage_channels = montage_channels
+        self.keeper_channels = keeper_channels
+      #   print('keeping the following channels: '+keeper_channels)
+    def __call__(self,signal):
+        keeper_indices = np.array([self.montage_channels.index(channel) for channel in self.keeper_channels])        
+        output = np.zeros_like(signal)
+        output[keeper_indices,:] = signal[keeper_indices,:]
+        return output
+
 def get_transforms(montage_channels,storage_channels,windowsize,windowjitter,Fq):
    montage = build_montage(montage_channels,storage_channels)
    cutter = cut_and_jitter(windowsize,windowjitter,Fq)
    transforms = [montage,cutter,normalize]
-   print('keeping all channels')
    return transforms
 
-def get_dataset(dataset): 
+
+channel_dict = {'all_referential': all_referential,
+         'six_referential': six_referential,
+         'two_referential': two_referential,
+         'six_bipolar':six_bipolar}
+
+
+
+if __name__=='__main__':
+
+   path_model = '../Models/SpikeNet_gen_rep_aug'
+   os.listdir(path_model)
+   dataset = 'Rep'
+   keeper_channels = 'all_referential'
+   config = get_config(path_model)
+   transforms = get_transforms(config.CHANNELS,all_referential,1,0,128)
+   print(config.CHANNELS)
+   keeper = keep_fixed_number_of_fixed_channels(montage_channels=config.CHANNELS,keeper_channels=channel_dict[keeper_channels])
+   transforms += [keeper]
    if dataset == 'Rep':
       module = datamodule(transforms=transforms,batch_size=256)
       dataloader, df = module.test_dataloader(), get_split_df(module.df,'Test')
@@ -67,17 +88,8 @@ def get_dataset(dataset):
          df = module.df
          df = df.rename(columns={'label':'total_votes_received'})
          df['total_votes_received']=8
-   return dataloader, df
-
-if __name__=='__main__':
-
-   path_model = '../Models/transformer_specialized_two_ref_rep'
-   dataset = 'Rep'
-   config = get_config(path_model)
-   transforms = get_transforms(config.CHANNELS,all_referential,1,0,128)
-   dataloader,df = get_dataset(dataset)
    model = load_model_from_checkpoint(path_model,config,len(config.CHANNELS))
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')
    preds = generate_predictions(model,trainer,dataloader)
-   save_preds(df,preds,path_model,dataset)
+   save_preds(df,preds,path_model,savename = f'pred_{dataset}_{keeper_channels}.csv')

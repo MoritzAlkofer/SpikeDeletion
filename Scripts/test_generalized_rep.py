@@ -1,10 +1,11 @@
-from local_utils import all_referential, build_montage, remove_channels, normalize, cut_and_jitter
+from utils import all_referential, build_montage, remove_channels, normalize, cut_and_jitter
 from make_datamodule import datamodule, get_split_df
 import numpy as np
 import os
 import pickle
 import pandas as pd
 import torch
+from spikenet_model import SpikeNetInstance
 from sklearn.metrics import roc_curve, auc
 from model import EEGTransformer
 import pytorch_lightning as pl
@@ -16,8 +17,9 @@ def get_config(path_model):
       config = pickle.load(f)
    return config
 
-def load_model_from_checkpoint(path_model,config):
-   model = EEGTransformer.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),
+def load_model_from_checkpoint(path_model,config,architecture):
+   if architecture =='Transformer':
+      model = EEGTransformer.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),
                                           lr=config.LR,
                                           head_dropout=config.HEAD_DROPOUT,
                                           n_channels=len(config.CHANNELS),
@@ -27,6 +29,8 @@ def load_model_from_checkpoint(path_model,config):
                                           depth=config.DEPTH,
                                           emb_size = config.EMB_SIZE,
                                           weight_decay = config.WEIGHT_DECAY)
+   elif architecture =='SpikeNet':
+      model = SpikeNetInstance.load_from_checkpoint(os.path.join(path_model,'weights.ckpt'),n_channels=len(config.CHANNELS),map_location=torch.device('cuda'))                        
    return model
 
 def init_trainer():
@@ -51,25 +55,25 @@ def get_args():
 
 if __name__=='__main__':
 
-   path_model = get_args()
-   path_data = '/media/moritz/a80fe7e6-2bb9-4818-8add-17fb9bb673e1/Data/Bonobo/cluster_center/' 
+   path_model = '../Models/SpikeNet_gen_rep_aug'
+   architecture ='SpikeNet'
+   path_data = '/media/moritz/internal_expansion/Data/Bonobo/cluster_center/' 
    config = get_config(path_model)
-   path_model = '../Models/generalized_referential'
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')
 
    montage = build_montage(config.CHANNELS,all_referential)
-   cutter = cut_and_jitter(config.WINDOWSIZE,0,config.FQ)
+   cutter = cut_and_jitter(1,0,config.FQ)
       
    n_runs = 5
    results = {'n_keeper':[],'run':[],'AUROC':[]}
+   model = load_model_from_checkpoint(path_model,config,architecture)
    for n_keeper in tqdm(range(len(config.CHANNELS)+1)):
       for run in range(n_runs):
          channel_remover = remove_channels(len(config.CHANNELS),N_keeper=n_keeper)
          transforms = [montage,cutter,normalize,channel_remover]
          module = datamodule(transforms=transforms,batch_size=256,echo=False)
          dataloader, df = module.test_dataloader(), get_split_df(module.df,'Test')
-         model = load_model_from_checkpoint(path_model,config)
          preds = generate_predictions(model,trainer,dataloader)
          labels = df.fraction_of_yes.round(0).astype(int)
          fpr, tpr, thresholds = roc_curve(labels, preds)

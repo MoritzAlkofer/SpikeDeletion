@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
-from make_datamodule import datamoduleLocal, get_split_dfLocal 
+from make_datamodule import datamoduleLocal, get_split_dfLocal, datamoduleClemson
 
 def init_results_dataframe_bonobo():
     # load results
@@ -31,7 +31,7 @@ def get_preds_and_labels(df,SpikeLocation,ChannelLocation):
     return labels, preds
 
 def get_results_SpikeLocation(results,SpikeLocation):
-    SpikeResults = results[results.SpikeLocation==SpikeLocation].sort_values('roc_auc',ascending=False)
+    SpikeResults = results[results.SpikeLocation==SpikeLocation]
     return SpikeResults
 
 def get_results_ChannelLocation(results_SpikeLocation,ChannelLocation):
@@ -41,6 +41,7 @@ def get_results_ChannelLocation(results_SpikeLocation,ChannelLocation):
 
 def plot_subplot(ax,fpr,tpr,roc_auc,N,ChannelLocation):
     ax.plot(fpr,tpr,label=ChannelLocation+f' ROC: {roc_auc:.2f}')
+    ax.set_aspect('equal')
     return ax
   
 def calcualte_roc_results(df,SpikeLocations,ChannelLocations):
@@ -60,17 +61,29 @@ def calcualte_roc_results(df,SpikeLocations,ChannelLocations):
     return pd.DataFrame(results)
 
 if __name__ == '__main__':
-    module = datamoduleLocal(transforms = None, batch_size=256)
-    path_model = '../Models/generalized_all_ref_loc'
-    df = pd.read_csv(os.path.join(path_model,'results_localized.csv'))
-    df_locations = pd.read_csv('../Data/tables/locations_13FEB24.csv')
-    df_locations = df_locations.rename(columns={'location':'SpikeLocation'})
-    df = df.merge(df_locations[['event_file','SpikeLocation']],on='event_file',how='left')
+    path_model = '../Models/SpikeNet_gen_loc'
+
+    dataset = 'Loc'
+
+    if dataset == 'Loc':
+        df = pd.read_csv(os.path.join(path_model,'results_localized_Loc.csv'))
+        df_locations = pd.read_csv('../Data/tables/locations_13FEB24.csv')
+        df_locations = df_locations.rename(columns={'location':'SpikeLocation'})
+        df = df.merge(df_locations[['event_file','SpikeLocation']],on='event_file',how='left')
+    elif dataset == 'Clemson':
+        df = pd.read_csv(os.path.join(path_model,'results_localized_Clemson.csv'))
+        pos,neg = df[df.fraction_of_yes==1],df[df.fraction_of_yes==0]
+        df = df.rename(columns={'location':'SpikeLocation'})
+        df_locations = pd.read_csv('../Data/tables/clemson_all_locs.csv')
+        #df_locations = pd.read_csv('/home/moritz/Desktop/programming/SpikeDeletion/tables/lut_clemson_with_loc.csv')
+        df_locations = df_locations.rename(columns={'location':'SpikeLocation'})
+        pos = pos.merge(df_locations,on='event_file',how='right')
+        df = pd.concat([pos,neg])
 
     SpikeLocations,ChannelLocations = init_locations()
     results = calcualte_roc_results(df,SpikeLocations,ChannelLocations)
 
-fig, axs = plt.subplots(2,3,figsize = (12,5),sharex=True,sharey=True)
+fig, axs = plt.subplots(2,3,figsize = (10,6),sharex=True,sharey=True)
 
 for i,SpikeLocation in enumerate(SpikeLocations):
     ax = axs[i//3,i%3]
@@ -79,12 +92,12 @@ for i,SpikeLocation in enumerate(SpikeLocations):
         fpr, tpr, roc_auc, N = get_results_ChannelLocation(results_SpikeLocation,ChannelLocation)
         ax=plot_subplot(ax,fpr,tpr,roc_auc,N,ChannelLocation)
     ax.set_title(f'{SpikeLocation} spikes, N={N}')
-    ax.legend()
+    ax.legend(frameon=False)
 axs[0,0].set_ylabel('tpr')
 axs[1,0].set_ylabel('tpr')
 for j in range(3):
     axs[1,j].set_xlabel('fpr')
 
 fig.tight_layout()
-fig.savefig(os.path.join(path_model,'fig_general_local.png'))
+fig.savefig(os.path.join(path_model,f'fig_general_local_{dataset}.png'))
 
