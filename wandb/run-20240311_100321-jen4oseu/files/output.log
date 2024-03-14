@@ -1,0 +1,104 @@
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:617: UserWarning: Checkpoint directory /home/moritz/Desktop/programming/SpikeDeletion_clean/Models/gen_ref_loc exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+  | Name  | Type         | Params
+---------------------------------------
+0 | model | SpikeNet     | 363 K
+1 | head  | SpikeNetHead | 257
+2 | RMSE  | RMSELoss     | 0
+3 | loss  | BCELoss      | 0
+---------------------------------------
+364 K     Trainable params
+0         Non-trainable params
+364 K     Total params
+1.457     Total estimated model params size (MB)
+
+
+Epoch 0:  80%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▍                                                             | 356/445 [00:04<00:01, 80.46it/s, v_num=oseu]
+Traceback (most recent call last):
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 43, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 571, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 980, in _run
+    results = self._run_stage()
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1023, in _run_stage
+    self.fit_loop.run()
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py", line 202, in run
+    self.advance()
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/loops/fit_loop.py", line 355, in advance
+    self.epoch_loop.run(self._data_fetcher)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/loops/training_epoch_loop.py", line 134, in run
+    self.on_advance_end()
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/loops/training_epoch_loop.py", line 249, in on_advance_end
+    self.val_loop.run()
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/loops/utilities.py", line 181, in _decorator
+    return loop_run(self, *args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 115, in run
+    self._evaluation_step(batch, batch_idx, dataloader_idx)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/loops/evaluation_loop.py", line 376, in _evaluation_step
+    output = call._call_strategy_hook(trainer, hook_name, *step_kwargs.values())
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 294, in _call_strategy_hook
+    output = fn(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/strategies/strategy.py", line 393, in validation_step
+    return self.model.validation_step(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/SpikeDeletion_clean/utils/models/instances.py", line 51, in validation_step
+    pred = self.forward(x)
+  File "/home/moritz/Desktop/programming/SpikeDeletion_clean/utils/models/instances.py", line 33, in forward
+    x = self.model(x)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/SpikeDeletion_clean/utils/models/SpikeNet.py", line 106, in forward
+    x = self.block5(x)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/SpikeDeletion_clean/utils/models/SpikeNet.py", line 56, in forward
+    x = self.conv(x)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/nn/modules/conv.py", line 460, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/nn/modules/conv.py", line 456, in _conv_forward
+    return F.conv2d(input, weight, bias, self.stride,
+RuntimeError: cuDNN error: CUDNN_STATUS_MAPPING_ERROR
+During handling of the above exception, another exception occurred:
+Traceback (most recent call last):
+  File "/home/moritz/Desktop/programming/SpikeDeletion_clean/train_model.py", line 101, in <module>
+    trainer.fit(model,module)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 532, in fit
+    call._call_and_handle_interrupt(
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py", line 67, in _call_and_handle_interrupt
+    trainer._teardown()
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/trainer.py", line 1003, in _teardown
+    self.strategy.teardown()
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/strategies/strategy.py", line 494, in teardown
+    _optimizers_to_device(self.optimizers, torch.device("cpu"))
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/lightning_fabric/utilities/optimizer.py", line 28, in _optimizers_to_device
+    _optimizer_to_device(opt, device)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/lightning_fabric/utilities/optimizer.py", line 34, in _optimizer_to_device
+    optimizer.state[p] = apply_to_collection(v, Tensor, move_data_to_device, device, allow_frozen=True)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/lightning_utilities/core/apply_func.py", line 59, in apply_to_collection
+    v = apply_to_collection(
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/lightning_utilities/core/apply_func.py", line 51, in apply_to_collection
+    return function(data, *args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/lightning_fabric/utilities/apply_func.py", line 101, in move_data_to_device
+    return apply_to_collection(batch, dtype=_TransferableDataType, function=batch_to)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/lightning_utilities/core/apply_func.py", line 51, in apply_to_collection
+    return function(data, *args, **kwargs)
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/lightning_fabric/utilities/apply_func.py", line 95, in batch_to
+    data_output = data.to(device, **kwargs)
+RuntimeError: CUDA error: device-side assert triggered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.
+Epoch 0: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 445/445 [00:05<00:00, 84.69it/s, v_num=oseu]
+Validation DataLoader 0:  65%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▎                                                                                                         | 77/118 [00:00<00:00, 307.84it/s]

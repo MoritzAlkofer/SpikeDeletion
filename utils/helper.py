@@ -4,6 +4,8 @@ import torch
 import os
 import json
 from .models.instances import SpikeNetInstance
+from .datamodules import DatamoduleClemson, DatamoduleLoc, DatamoduleRep
+
 def get_config(path_model):
     with open(os.path.join(path_model,'config.json'), 'r') as fp:
         config = json.load(fp)
@@ -22,3 +24,18 @@ def generate_predictions(model,trainer,dataloader):
    preds = trainer.predict(model,dataloader)
    preds = np.concatenate(preds).squeeze()
    return preds
+
+def get_datamodule(dataset,batch_size,transforms):
+   if dataset == 'Rep':
+      module = DatamoduleRep(batch_size=batch_size,transforms=transforms)
+   if dataset == 'Loc':
+      module = DatamoduleLoc(batch_size=batch_size,transforms=transforms)
+   elif dataset == 'Clemson':
+      module = DatamoduleClemson(batch_size=batch_size,transforms=transforms)
+   return module
+
+def binarize(values,threshold):
+    values = np.array(values)
+    values[values<threshold] = 0
+    values[values!=0] =1
+    return list(values)

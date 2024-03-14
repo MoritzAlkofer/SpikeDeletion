@@ -1,0 +1,373 @@
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:617: UserWarning: Checkpoint directory /home/moritz/Desktop/programming/SpikeDeletion_clean/Models/gen_ref_avg exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+  | Name  | Type         | Params
+---------------------------------------
+0 | model | SpikeNet     | 363 K
+1 | head  | SpikeNetHead | 257
+2 | RMSE  | RMSELoss     | 0
+3 | loss  | BCELoss      | 0
+---------------------------------------
+364 K     Trainable params
+0         Non-trainable params
+364 K     Total params
+1.457     Total estimated model params size (MB)
+
+
+
+
+
+
+Epoch 1: 100%|█| 764/764 [00:05<00:00, 127.79it/s, v_num=emjs, val_loss=0.620, val_RMSE=0.320, train_los
+
+
+
+
+
+
+
+
+
+Epoch 4: 100%|█| 764/764 [00:06<00:00, 121.94it/s, v_num=emjs, val_loss=0.505, val_RMSE=0.265, train_los
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 8: 100%|█| 764/764 [00:05<00:00, 132.45it/s, v_num=emjs, val_loss=0.474, val_RMSE=0.249, train_los
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 15: 100%|█| 764/764 [00:06<00:00, 126.36it/s, v_num=emjs, val_loss=0.461, val_RMSE=0.239, train_lo
+
+
+
+
+
+
+
+
+
+Epoch 18: 100%|█| 764/764 [00:06<00:00, 119.21it/s, v_num=emjs, val_loss=0.473, val_RMSE=0.245, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 27: 100%|█| 764/764 [00:06<00:00, 124.72it/s, v_num=emjs, val_loss=0.463, val_RMSE=0.242, train_lo
+
+
+
+
+
+
+
+Epoch 29: 100%|█| 764/764 [00:05<00:00, 130.99it/s, v_num=emjs, val_loss=0.439, val_RMSE=0.225, train_lo
+
+
+
+
+Epoch 30: 100%|█| 764/764 [00:09<00:00, 79.24it/s, v_num=emjs, val_loss=0.440, val_RMSE=0.226, train_los
+
+
+
+
+
+
+
+
+Epoch 32: 100%|█| 764/764 [00:10<00:00, 72.53it/s, v_num=emjs, val_loss=0.439, val_RMSE=0.225, train_los
+
+
+
+
+
+
+
+
+Epoch 34: 100%|█| 764/764 [00:10<00:00, 73.84it/s, v_num=emjs, val_loss=0.446, val_RMSE=0.231, train_los
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 38: 100%|█| 764/764 [00:08<00:00, 88.28it/s, v_num=emjs, val_loss=0.444, val_RMSE=0.228, train_los
+
+
+
+
+
+
+Epoch 40: 100%|█| 764/764 [00:06<00:00, 116.56it/s, v_num=emjs, val_loss=0.448, val_RMSE=0.232, train_lo
+
+
+
+
+
+
+
+Epoch 42: 100%|█| 764/764 [00:08<00:00, 89.90it/s, v_num=emjs, val_loss=0.433, val_RMSE=0.219, train_los
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 45: 100%|█| 764/764 [00:14<00:00, 54.00it/s, v_num=emjs, val_loss=0.439, val_RMSE=0.227, train_los
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 53: 100%|█| 764/764 [00:06<00:00, 126.87it/s, v_num=emjs, val_loss=0.437, val_RMSE=0.225, train_
+
+
+
+
+
+
+
+
+
+Epoch 56: 100%|█| 764/764 [00:06<00:00, 127.01it/s, v_num=emjs, val_loss=0.429, val_RMSE=0.219, train_
+
+
+
+
+
+
+
+
+
+Epoch 59: 100%|█| 764/764 [00:06<00:00, 123.30it/s, v_num=emjs, val_loss=0.440, val_RMSE=0.224, train_
+
+
+
+
+
+
+Epoch 61: 100%|█| 764/764 [00:06<00:00, 115.30it/s, v_num=emjs, val_loss=0.435, val_RMSE=0.219, train_
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 67: 100%|█| 764/764 [00:06<00:00, 125.06it/s, v_num=emjs, val_loss=0.430, val_RMSE=0.218, train_lo
+
+
+
+
+
+
+Epoch 69: 100%|█| 764/764 [00:06<00:00, 127.16it/s, v_num=emjs, val_loss=0.433, val_RMSE=0.221, train_lo
+
+
+
+
+
+
+Epoch 71: 100%|█| 764/764 [00:06<00:00, 116.86it/s, v_num=emjs, val_loss=0.435, val_RMSE=0.221, train_lo
+
+
+
+
+
+
+Epoch 73: 100%|█| 764/764 [00:06<00:00, 119.30it/s, v_num=emjs, val_loss=0.438, val_RMSE=0.222, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 78: 100%|█| 764/764 [00:06<00:00, 125.71it/s, v_num=emjs, val_loss=0.425, val_RMSE=0.215, train_lo
+
+
+
+
+
+
+Epoch 80: 100%|█| 764/764 [00:06<00:00, 121.40it/s, v_num=emjs, val_loss=0.429, val_RMSE=0.215, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 86: 100%|█| 764/764 [00:06<00:00, 122.27it/s, v_num=emjs, val_loss=0.431, val_RMSE=0.220, train_lo
+
+
+
+
+
+
+Epoch 88: 100%|█| 764/764 [00:06<00:00, 120.91it/s, v_num=emjs, val_loss=0.430, val_RMSE=0.219, train_lo
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Epoch 96: 100%|█| 764/764 [00:06<00:00, 122.89it/s, v_num=emjs, val_loss=0.427, val_RMSE=0.217, train_lo
+
+
+
+
+Epoch 97: 100%|█| 764/764 [00:07<00:00, 107.46it/s, v_num=emjs, val_loss=0.429, val_RMSE=0.217, train_lo

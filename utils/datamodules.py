@@ -166,11 +166,3 @@ def collate_fn(batch):
     y = torch.tensor(np.array(y), dtype=torch.float32)
     return X, y
 
-def get_datamodule(name,transforms,batch_size=256):
-    if name == 'Loc':
-        module = DatamoduleLoc(batch_size=batch_size,transforms=transforms)
-    if name == 'Rep':
-        module = DatamoduleRep(batch_size=batch_size,transforms=transforms)
-    if name == 'Clemson':
-        module = DatamoduleClemson(batch_size=batch_size,transforms=transforms)
-    return module

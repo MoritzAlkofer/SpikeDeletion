@@ -1,0 +1,10 @@
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+Traceback (most recent call last):
+  File "/home/moritz/Desktop/programming/SpikeDeletion_clean/train_model.py", line 100, in <module>
+    module = get_datamodule(config['DATASET'],config['BATCH_SIZE'],transforms)
+  File "/home/moritz/Desktop/programming/SpikeDeletion_clean/utils/helper.py", line 33, in get_datamodule
+    return module
+UnboundLocalError: local variable 'module' referenced before assignment

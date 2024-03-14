@@ -1,5 +1,5 @@
 from utils import Montage, Cutter, normalize
-from utils import DatamoduleRep
+from utils import get_datamodule
 from utils import get_config, load_model_from_checkpoint
 from utils import all_referential, KeepNRandomChannels
 import numpy as np
@@ -29,12 +29,14 @@ def save_preds(df,preds,path_model):
 def get_args():
     parser = argparse.ArgumentParser(description='Train model with different montages')
     parser.add_argument('--path_model')
+    parser.add_argument('--dataset')
     args = parser.parse_args()
-    return args.path_model
+
+    return args.path_model, args.dataset
 
 if __name__=='__main__':
 
-   path_model = get_args()
+   path_model,dataset = get_args()
    config = get_config(path_model)
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')
@@ -44,14 +46,14 @@ if __name__=='__main__':
    model = load_model_from_checkpoint(path_model,config)
    transforms = [montage,cutter,normalize]
 
-   n_runs = 3
+   n_runs = 10
    results = {'n_keeper':[],'run':[],'AUROC':[]}
 
    for n_keeper in tqdm(range(len(config['CHANNELS'])+1)):
       for run in range(n_runs):
          channel_remover = KeepNRandomChannels(len(config['CHANNELS']),N_keeper=n_keeper)
          
-         module = DatamoduleRep(transforms=transforms+[channel_remover],batch_size=256)
+         module = get_datamodule(dataset,transforms=transforms+[channel_remover],batch_size=256)
    
          labels = [int(np.round(l,0)) for l in module.get_labels('Test')]
          preds = generate_predictions(model,trainer,module.test_dataloader())

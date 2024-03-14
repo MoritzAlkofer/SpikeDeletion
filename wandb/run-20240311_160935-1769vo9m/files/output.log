@@ -1,0 +1,51 @@
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:617: UserWarning: Checkpoint directory /home/moritz/Desktop/programming/SpikeDeletion_clean/Models/gen_ref_avg exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+  | Name  | Type         | Params
+---------------------------------------
+0 | model | SpikeNet     | 363 K
+1 | head  | SpikeNetHead | 257
+2 | RMSE  | RMSELoss     | 0
+3 | loss  | BCELoss      | 0
+---------------------------------------
+364 K     Trainable params
+0         Non-trainable params
+364 K     Total params
+1.457     Total estimated model params size (MB)
+Epoch 0:   0%|                                                                  | 0/764 [00:00<?, ?it/s]
+Exception ignored in: <function _releaseLock at 0x7f11838dcc10>
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/logging/__init__.py", line 228, in _releaseLock
+    def _releaseLock():
+KeyboardInterrupt:
+Exception ignored in sys.unraisablehook: <built-in function unraisablehook>
+Traceback (most recent call last):
+  File "/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/torch/utils/data/_utils/signal_handling.py", line 66, in handler
+    _error_if_any_worker_fails()
+RuntimeError: DataLoader worker (pid 302650) exited unexpectedly with exit code 1. Details are lost due to multiprocessing. Rerunning with num_workers=0 may give better error trace.
+Exception ignored in: <function _releaseLock at 0x7f11838dcc10>
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/logging/__init__.py", line 228, in _releaseLock
+    def _releaseLock():
+KeyboardInterrupt:
+Exception ignored in: <function _releaseLock at 0x7f11838dcc10>
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/logging/__init__.py", line 228, in _releaseLock
+    def _releaseLock():
+KeyboardInterrupt:
+Exception ignored in: <function _releaseLock at 0x7f11838dcc10>
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/logging/__init__.py", line 228, in _releaseLock
+    def _releaseLock():
+KeyboardInterrupt:
+Exception ignored in: <function _releaseLock at 0x7f11838dcc10>
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/logging/__init__.py", line 228, in _releaseLock
+    def _releaseLock():
+KeyboardInterrupt:
+/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py:53: UserWarning: Detected KeyboardInterrupt, attempting graceful shutdown...
+  rank_zero_warn("Detected KeyboardInterrupt, attempting graceful shutdown...")

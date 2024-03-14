@@ -1,9 +1,11 @@
 from utils import SpikeNetInstance, TransformerInstance
 from utils import DatamoduleRep, DatamoduleLoc
-from utils import ChannelFlipper, RandomScaler,ChannelRemover, Montage, Cutter, normalize
-from utils import all_bipolar, all_referential
+from utils import ChannelFlipper, RandomScaler,KeepRandomChannels, Montage, Cutter, normalize
+from utils import all_bipolar, all_referential, all_average
+from utils import get_datamodule
 import argparse
 import os
+import numpy as np
 import json
 import torch
 import pytorch_lightning as pl
@@ -14,7 +16,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 def get_args():
     parser = argparse.ArgumentParser(description='Train model with different montages')
     parser.add_argument('--path_model')
-    parser.add_argument('--channels', choices=['all_referential','all_bipolar'],default='all_referential')
+    parser.add_argument('--channels', choices=['all_referential','all_bipolar','all_average'],default='all_referential')
     parser.add_argument('--random_delete',default=False, action= 'store_true')
     parser.add_argument('--dataset',default='Rep', choices=['Rep','Loc'])
     parser.add_argument('--architecture',default='SpikeNet')
@@ -59,10 +61,10 @@ def get_transforms(config,storage_channels):
     scaler = RandomScaler(scale_percent=config['SCALE_PERCENT'])
 
 
-    transforms = [montage,cutter,scaler,flipper]
+    transforms = [np.nan_to_num,montage,cutter,scaler,flipper]
 
     if config['RANDOM_DELETE']:
-        channel_remover = ChannelRemover(len(config['CHANNELS']),N_keeper='random')
+        channel_remover = KeepRandomChannels(len(config['CHANNELS']))
         transforms += [channel_remover]
         print('keeping all channels')
     transforms+=[normalize]
@@ -70,6 +72,8 @@ def get_transforms(config,storage_channels):
     return transforms
 
 def save_config(path_model,config):
+    if not os.path.isdir(path_model):
+        os.mkdir(path_model)
     with open(os.path.join(path_model,'config.json'), 'w') as fp:
         json.dump(config, fp)
 
@@ -81,6 +85,9 @@ if __name__ == '__main__':
         config = default_config(channels=all_referential)
     elif channels =='all_bipolar':
         config = default_config(channels=all_bipolar)
+    elif channels =='all_average':
+        config = default_config(channels=all_average)
+    config['DATASET']=dataset
     save_config(path_model,config)
     transforms = get_transforms(config,storage_channels=all_referential)
 
@@ -93,6 +100,6 @@ if __name__ == '__main__':
                         fast_dev_run=False)
     
     model = init_model(config)
-    module = DatamoduleRep(batch_size=config['BATCH_SIZE'],transforms=transforms)
+    module = get_datamodule(config['DATASET'],config['BATCH_SIZE'],transforms)
     trainer.fit(model,module)
    

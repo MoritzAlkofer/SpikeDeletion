@@ -15,7 +15,7 @@ import pytorch_lightning as pl
 
 def init_location_dict():
    # init channel and spike locations
-   location_dict = {'frontal':['F3','F4'],
+   location_dict = {'frontal':['Fp1','Fp2'],
          'parietal':['P3','P4'],
          'occipital':['O1','O2'],
          'temporal':['T3','T4'],
@@ -48,7 +48,7 @@ if __name__=='__main__':
    for location,keeper_channels in tqdm(location_dict.items()):
         channel_remover = KeepFixedChannels(config['CHANNELS'],keeper_channels)
 
-        module = get_datamodule(dataset,transforms+[channel_remover])
+        module = get_datamodule(dataset,transforms=transforms+[channel_remover],batch_size=256)
         
         preds = generate_predictions(model,trainer,module.test_dataloader())
         

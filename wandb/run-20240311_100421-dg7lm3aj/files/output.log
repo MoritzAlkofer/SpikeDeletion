@@ -1,0 +1,33 @@
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+HPU available: False, using: 0 HPUs
+/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:617: UserWarning: Checkpoint directory /home/moritz/Desktop/programming/SpikeDeletion_clean/Models/gen_ref_loc exists and is not empty.
+  rank_zero_warn(f"Checkpoint directory {dirpath} exists and is not empty.")
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+  | Name  | Type         | Params
+---------------------------------------
+0 | model | SpikeNet     | 363 K
+1 | head  | SpikeNetHead | 257
+2 | RMSE  | RMSELoss     | 0
+3 | loss  | BCELoss      | 0
+---------------------------------------
+364 K     Trainable params
+0         Non-trainable params
+364 K     Total params
+1.457     Total estimated model params size (MB)
+
+
+
+
+
+
+
+
+
+
+
+Epoch 5:  19%|█████████████████████████████████████████████▎                                                                                                                                                                                                  | 84/445 [00:00<00:03, 101.64it/s, v_num=m3aj, val_loss=0.556, val_RMSE=0.309, train_loss=0.521, train_RMSE=0.302]
+/home/moritz/Desktop/programming/epilepsy_project/.venv/lib/python3.10/site-packages/pytorch_lightning/trainer/call.py:53: UserWarning: Detected KeyboardInterrupt, attempting graceful shutdown...
+
+Epoch 5:  44%|████████████████████████████████████████████████████████████████████████████████████████████████████████▋                                                                                                                                      | 195/445 [00:01<00:02, 108.77it/s, v_num=m3aj, val_loss=0.556, val_RMSE=0.309, train_loss=0.521, train_RMSE=0.302]

@@ -5,10 +5,12 @@ class ChannelFlipper():
     def __init__(self, p, channels):
         self.p = p
         # get flipped order of channel strings
-        if '-' in channels[0]:
-            channels_flipped = self._bipolar_flipper(channels)
-        else: 
+        if not '-' in channels[0]:
             channels_flipped = self._monopolar_flipper(channels)
+        elif 'avg' in channels[0]:
+            channels_flipped = self._average_flipper(channels)
+        else:
+            channels_flipped = self._bipolar_flipper(channels)
         
         # convert strings to indices, this is later applied to the signal
         self.flipped_order = [channels.index(c) for c in channels_flipped]
@@ -41,6 +43,14 @@ class ChannelFlipper():
         for channel in channels:
             channel = self._flip_channel(channel)
             channels_flipped.append(channel)
+        return channels_flipped
+    
+    def _average_flipper(self,channels):
+        ''' flip all channels in a list of monopolar channels'''
+        channels_flipped = []
+        for channel in channels:
+            channel = self._flip_channel(channel.replace('-avg',''))
+            channels_flipped.append(channel+'-avg')
         return channels_flipped
         
     def _bipolar_flipper(self,channels):
@@ -76,8 +86,7 @@ class Montage():
         # get list of all channels that should be displayed in average montage
         avg_channels = [channel for channel in montage_channels if 'avg' in channel]
         # get ids of channels 
-
-        self.avg_ids = np.array([storage_channels.index(channel.replace('-avg',''), regex=True) for channel in avg_channels])
+        self.avg_ids = np.array([storage_channels.index(channel.replace('-avg','')) for channel in avg_channels])
 
         # BIPOLAR MONTAGE
         # get list of all channels that should be displayed in average montage
@@ -128,6 +137,21 @@ class Cutter():
         start = start + int(np.random.uniform(-1, 1)*self.max_offset)
         return signal[:,start:start+self.windowsize]
         
+
+class KeepRandomChannels():
+    # init with list of signal montage channels, number of channels to be retained
+    # use: input: signal
+    # output: zero masked signal with *fixed* number of random channels retained
+    def __init__(self,N_channels):
+        self.N_channels = N_channels
+    def __call__(self,signal):
+        N_keeper = np.random.randint(1,self.N_channels)
+        # choose n random channels
+        keeper_indices = np.random.choice(self.N_channels, N_keeper, replace=False)
+        output = np.zeros_like(signal)
+        output[keeper_indices,:] = signal[keeper_indices,:]
+        return output
+    
 class KeepNRandomChannels():
     # init with list of signal montage channels, number of channels to be retained
     # use: input: signal

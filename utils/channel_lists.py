@@ -12,6 +12,7 @@ all_average = ['Fp1-avg','F3-avg','C3-avg','P3-avg','F7-avg','T3-avg','T5-avg','
         
 six_bipolar = ['F3-C3','C3-O1','F4-C4','C4-O2']
 
-two_referential = ['Fp1','Fp2']
+two_frontal = ['Fp1','Fp2']
+two_central = ['C3','C4']
 
 six_referential = ['F3','C3','O1','F4','C4','O2']

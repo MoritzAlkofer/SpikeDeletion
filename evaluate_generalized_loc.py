@@ -4,8 +4,10 @@ import pandas as pd
 from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 
-def init_locations():
+def init_locations(dataset):
     SpikeLocations = ['frontal','central','parietal', 'occipital','temporal']
+    if dataset =='Loc':
+        SpikeLocations +=['general']
     ChannelLocations = ['frontal','central', 'parietal', 'occipital','temporal']
     return SpikeLocations,ChannelLocations
 
@@ -40,6 +42,7 @@ def calcualte_roc_results(df,SpikeLocations,ChannelLocations):
     for SpikeLocation in SpikeLocations:
         for ChannelLocation in ChannelLocations:
             labels,preds = get_preds_and_labels(df,SpikeLocation,ChannelLocation)
+
             fpr, tpr, thresholds = roc_curve(labels, preds)
 
             roc_auc = auc(fpr, tpr)
@@ -54,7 +57,7 @@ def calcualte_roc_results(df,SpikeLocations,ChannelLocations):
 def get_args():
     parser = argparse.ArgumentParser(description='Train model with different montages')
     parser.add_argument('--path_model',default ='Models/gen_ref_rep')
-    parser.add_argument('--dataset',default='Rep')
+    parser.add_argument('--dataset',choices={'Loc','Clemson'})
     args = parser.parse_args()
     return args.path_model, args.dataset
 
@@ -63,12 +66,12 @@ if __name__ == '__main__':
     path_model, dataset = get_args()
 
     if dataset == 'Loc':
-        df = pd.read_csv(os.path.join(path_model,'results_localized_Loc.csv'))
+        df = pd.read_csv(os.path.join(path_model,'results_Loc_localized.csv'))
         df_locations = pd.read_csv('tables/locations_13FEB24.csv')
         df_locations = df_locations.rename(columns={'location':'SpikeLocation'})
         df = df.merge(df_locations[['event_file','SpikeLocation']],on='event_file',how='left')
     elif dataset == 'Clemson':
-        df = pd.read_csv(os.path.join(path_model,'results_localized_Clemson.csv'))
+        df = pd.read_csv(os.path.join(path_model,'results_Clemson_localized.csv'))
         pos,neg = df[df.fraction_of_yes==1],df[df.fraction_of_yes==0]
         df = df.rename(columns={'location':'SpikeLocation'})
         df_locations = pd.read_csv('tables/clemson_all_locs.csv')
@@ -76,8 +79,9 @@ if __name__ == '__main__':
         df_locations = df_locations.rename(columns={'location':'SpikeLocation'})
         pos = pos.merge(df_locations,on='event_file',how='right')
         df = pd.concat([pos,neg])
+        df = df.reset_index()
 
-    SpikeLocations,ChannelLocations = init_locations()
+    SpikeLocations,ChannelLocations = init_locations(dataset)
     results = calcualte_roc_results(df,SpikeLocations,ChannelLocations)
 
 fig, axs = plt.subplots(2,3,figsize = (10,6),sharex=True,sharey=True)
@@ -88,7 +92,7 @@ for i,SpikeLocation in enumerate(SpikeLocations):
     for j, ChannelLocation in enumerate(results_SpikeLocation.ChannelLocation):
         fpr, tpr, roc_auc, N = get_results_ChannelLocation(results_SpikeLocation,ChannelLocation)
         ax=plot_subplot(ax,fpr,tpr,roc_auc,N,ChannelLocation)
-    ax.set_title(f'{SpikeLocation} spikes, N={N}')
+    ax.set_title(f'{SpikeLocation.capitalize()} spikes, N={N}')
     ax.legend(frameon=False)
 axs[0,0].set_ylabel('tpr')
 axs[1,0].set_ylabel('tpr')
