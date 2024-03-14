@@ -1,1 +1,0 @@
-{"CHANNELS": ["Fp1", "F3", "C3", "P3", "F7", "T3", "T5", "O1", "Fz", "Cz", "Pz", "Fp2", "F4", "C4", "P4", "F8", "T4", "T6", "O2"], "WINDOWSIZE": 1, "WINDOWJITTER": 0.1, "FS": 128, "BATCH_SIZE": 128, "LR": 0.0001, "WEIGHT_DECAY": 0.0001, "SCALE_PERCENT": 0.1, "ARCHITECTURE": "SpikeNet", "RANDOM_DELETE": true, "DATASET": "Loc", "NORMALIZE": true}

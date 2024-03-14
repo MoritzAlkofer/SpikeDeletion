@@ -30,18 +30,26 @@ def calculate_rmses(values,labels):
     result = pd.DataFrame(result)
     return result
 
-info = ['pred_Rep_two_central.csv','pred_Rep_two_frontal.csv','pred_Rep_uneeg.csv','pred_Rep_epiminder_a.csv','pred_Rep_six_referential.csv','pred_Rep_all_referential.csv']
-
-for channels in info:
-    df = pd.read_csv(os.path.join('../Models/gen_ref_rep/',channels))
-    values = df.pred.to_list()
-    labels = df.label.round(0).to_list()
-    result = calculate_rmses(values,labels)
+def plot_rmses(result,label):
     minimum = result[result.rmse==result.rmse.min()].threshold.iloc[0]
     minimum = np.round(minimum,2)
-    label = channels.replace('.csv','').replace('pred_Rep_','')
     plt.plot(result.threshold,result.rmse,label = f'{label} min {minimum}')
     plt.plot((minimum,minimum),(0.3,0.7))
-plt.legend()
-plt.savefig('test.png')
+
+def add_info():
+    plt.legend()
+    plt.xlabel('threshold')
+    plt.ylabel('RMSE')
+
+path = '../Models/Representative/results_Rep_point_of_interest_Val.csv'
+df = pd.read_csv(path)
+for channels in df.ChannelLocation.unique():
+
+    values = df[df.ChannelLocation==channels].pred.to_list()
+    labels = df[df.ChannelLocation==channels].label.round(0).to_list()
+    result = calculate_rmses(values,labels)
+    plot_rmses(result,label=channels)
+add_info()
+
+plt.savefig('thresholds.png')
 plt.close()
