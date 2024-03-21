@@ -6,7 +6,7 @@ from torch.nn import BCELoss
 from .transformer import BIOTEncoder
 from .heads import RegressionHead
 from .Resnet_15.net1d import Net1D
-from .SpikeNet import SpikeNet, SpikeNetHead
+from .SpikeNet import SpikeNet, SpikeNetHead, SpikeNetLarge
 
 class RMSELoss(nn.Module):
     def __init__(self):
@@ -106,3 +106,8 @@ class SpikeNetInstance(InstanceBaseClass):
         head = SpikeNetHead(in_channels=256,out_channels=1)
         super().__init__(model,head,lr,weight_decay)
         
+class SpikeNetLargeInstance(InstanceBaseClass):
+    def __init__(self,n_channels,lr=1e-4,weight_decay=1e-4,dropout=0.2):
+        model = SpikeNetLarge(n_eeg_channels=n_channels,dropout=dropout)
+        head = SpikeNetHead(in_channels=256,out_channels=1)
+        super().__init__(model,head,lr,weight_decay)

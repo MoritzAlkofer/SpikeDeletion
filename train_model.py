@@ -1,8 +1,8 @@
-from utils import SpikeNetInstance, TransformerInstance
-from utils import DatamoduleRep, DatamoduleLoc
-from utils import ChannelFlipper, RandomScaler,KeepRandomChannels, Montage, Cutter, normalize
-from utils import all_bipolar, all_referential, all_average
-from utils import get_datamodule
+from local_utils import SpikeNetInstance, TransformerInstance, SpikeNetLargeInstance
+from local_utils import DatamoduleRep, DatamoduleLoc
+from local_utils import ChannelFlipper, RandomScaler,KeepRandomChannels, Montage, Cutter, normalize, AverageMontage
+from local_utils import all_bipolar, all_referential, all_average
+from local_utils import get_datamodule
 import argparse
 import os
 import numpy as np
@@ -17,7 +17,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='Train model with different montages')
     parser.add_argument('--path_model')
     parser.add_argument('--channels', choices=['all_referential','all_bipolar','all_average'],default='all_referential')
-    parser.add_argument('--random_delete',default=False, action= 'store_true')
+    parser.add_argument('--random_delete', action= 'store_true')
     parser.add_argument('--dataset',default='Rep', choices=['Rep','Loc'])
     parser.add_argument('--architecture',default='SpikeNet')
     args = parser.parse_args()
@@ -25,7 +25,7 @@ def get_args():
 
 def default_config(channels,windowsize=1,windowjitter=0.1,Fs=128,batch_size=128,
                    lr=1e-4,weight_decay=1e-4,scale_percent=0.1,
-                   architecture='SpikeNet',random_delete=True,dataset='Rep'):
+                   architecture='SpikeNet',random_delete=False,dataset='Rep'):
 
     params = {'CHANNELS': channels,
               'WINDOWSIZE':windowsize,
@@ -45,8 +45,11 @@ def default_config(channels,windowsize=1,windowjitter=0.1,Fs=128,batch_size=128,
 def init_model(config):
     if config['ARCHITECTURE'] == 'SpikeNet':
         model = SpikeNetInstance(n_channels = len(config['CHANNELS']))
+    if config['ARCHITECTURE'] == 'SpikeNetLarge':
+        model = SpikeNetLargeInstance(n_channels = len(config['CHANNELS']))
     elif config['ARCHITECTURE'] =='Transformer':
-        model = TransformerInstance(lr=config.LR, head_dropout=config.HEAD_DROPOUT, n_channels=len(config.CHANNELS), n_fft=config.N_FFT, hop_length=config.HOP_LENGTH, depth= config.DEPTH, heads=config.HEADS, emb_size=config.EMB_SIZE, weight_decay=config.WEIGHT_DECAY)
+        config['WINDOWSIZE'] =10
+        model = TransformerInstance(lr=config['LR'], n_channels=len(config['CHANNELS']),weight_decay=config['WEIGHT_DECAY'])
     return model
 
 def init_callbacks(path_model, patience=20):
@@ -55,11 +58,10 @@ def init_callbacks(path_model, patience=20):
 
 def get_transforms(config,storage_channels):
 
-    montage = Montage(montage_channels = config['CHANNELS'],storage_channels=storage_channels)
+    montage = AverageMontage(montage_channels = config['CHANNELS'],storage_channels=storage_channels)
     cutter = Cutter(config['WINDOWSIZE'],config['WINDOWJITTER'],config['FS'])
     flipper = ChannelFlipper(channels=config['CHANNELS'],p=0.5)
     scaler = RandomScaler(scale_percent=config['SCALE_PERCENT'])
-
 
     transforms = [np.nan_to_num,montage,cutter,scaler,flipper]
 
@@ -67,8 +69,9 @@ def get_transforms(config,storage_channels):
         channel_remover = KeepRandomChannels(len(config['CHANNELS']))
         transforms += [channel_remover]
         print('keeping all channels')
-    transforms+=[normalize]
-    print('normalizing')
+    if config['NORMALIZE']:
+        transforms+=[normalize]
+        print('normalizing')
     return transforms
 
 def save_config(path_model,config):
@@ -79,18 +82,22 @@ def save_config(path_model,config):
 
 if __name__ == '__main__':
     path_model, channels, dataset, random_delete, architecture = get_args()
-    print(channels)
-
     if channels =='all_referential':
-        config = default_config(channels=all_referential)
+        config = default_config(channels=all_referential,architecture=architecture,random_delete=random_delete)
     elif channels =='all_bipolar':
-        config = default_config(channels=all_bipolar)
+        config = default_config(channels=all_bipolar,architecture=architecture,random_delete=random_delete)
     elif channels =='all_average':
-        config = default_config(channels=all_average)
+        config = default_config(channels=all_average,architecture=architecture,random_delete=random_delete
+                                )
+    if architecture == 'Transformer':
+        config['WINDOWSIZE'] = 10
+        config['WINDOWJITTER'] = 2.5
     config['DATASET']=dataset
+    
+    
     save_config(path_model,config)
     transforms = get_transforms(config,storage_channels=all_referential)
-
+    
     torch.set_float32_matmul_precision('high')
     callbacks = init_callbacks(path_model)
     trainer = pl.Trainer(max_epochs=300,
@@ -101,5 +108,6 @@ if __name__ == '__main__':
     
     model = init_model(config)
     module = get_datamodule(config['DATASET'],config['BATCH_SIZE'],transforms)
+    print(config)
     trainer.fit(model,module)
    

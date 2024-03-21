@@ -122,6 +122,26 @@ class Montage():
 
         signal = np.concatenate(signals)
         return signal
+    
+class AverageMontage():
+    # this version can also convert cdac monopolar montage into mgh_psg monopolar montage
+    def __init__(self,montage_channels,storage_channels):
+        
+        # AVERAGE MONTAGE
+        # get list of all channels that should be displayed in average montage
+        avg_channels = [channel for channel in montage_channels if 'avg' in channel]
+        # get ids of channels 
+        self.avg_ids = np.array([storage_channels.index(channel.replace('-avg','')) for channel in avg_channels])
+
+    def __call__(self,signal):
+        signal = signal[self.avg_ids]
+        # check that there are at least two channels
+        # else signal - avg(signal) = 0!
+        if np.sum(np.any(signal!=0,axis=1))>=2:
+            avg_signal = signal.mean(axis=0).squeeze()
+            # substract average from original signal
+            signal = signal - avg_signal
+        return signal
 
 class Cutter():
     def __init__(self,windowsize,max_offset,Fq):
@@ -137,7 +157,6 @@ class Cutter():
         start = start + int(np.random.uniform(-1, 1)*self.max_offset)
         return signal[:,start:start+self.windowsize]
         
-
 class KeepRandomChannels():
     # init with list of signal montage channels, number of channels to be retained
     # use: input: signal
@@ -181,11 +200,13 @@ class KeepFixedChannels():
     
 def normalize(signal):
     signal = signal / (np.quantile(np.abs(signal), q=0.95, method="linear", axis=-1, keepdims=True) + 1e-8)
-    signal = signal - np.mean(signal)
+    signal = signal - np.mean(signal,axis=1,keepdims=True)
     
     return signal
 
 def init_standard_transforms(storage_channels,montage_channels,windowsize,windowjitter,Fs):
+    if any(['avg' in f for f in montage_channels]):
+        montage = AverageMontage(montage_channels,storage_channels)
     montage = Montage(montage_channels,storage_channels)
     cutter = Cutter(windowsize,windowjitter,Fs)
     transforms = [montage,cutter,normalize]

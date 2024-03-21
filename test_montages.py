@@ -4,9 +4,10 @@ from local_utils import get_datamodule
 from local_utils import get_config, load_model_from_checkpoint
 from local_utils import points_of_interest, localized_channels, all_referential
 from local_utils import generate_predictions, init_trainer
-import numpy as np
+from scipy.signal import resample_poly
 import os
 import pickle
+from functools import partial
 import pandas as pd
 #from utils import *
 from tqdm import tqdm 
@@ -45,9 +46,10 @@ if __name__=='__main__':
    transforms = init_standard_transforms(all_referential,config['CHANNELS'],
                                         config['WINDOWSIZE'],0,config['FS'])
 
+
    results = {'event_file':[],'label':[],'pred':[],'SpikeLocation':[],'ChannelLocation':[]}
    for location,keeper_channels in tqdm(location_dict.items()):
-      channel_remover = KeepFixedChannels(config['CHANNELS'],keeper_channels)
+      channel_remover = KeepFixedChannels(config['CHANNELS'],[f+'-avg' for f in keeper_channels])
 
       module = get_datamodule(dataset,transforms=transforms+[channel_remover],batch_size=256)
       if split =='Test':
@@ -59,7 +61,10 @@ if __name__=='__main__':
       results['label']+=module.get_labels(split)
       results['pred']+=list(preds)
       results['ChannelLocation']+=[location]*len(preds)
-      results['SpikeLocation']+=module.get_locations(split)
+      if dataset == 'Rep':
+         results['SpikeLocation']+=[None]*len(preds)
+      if dataset != 'Rep':
+         results['SpikeLocation']+=module.get_locations(split)
 
 results = pd.DataFrame(results)
 results.to_csv(path_model+f'/results_{dataset}_{channels}_{split}.csv',index=False)

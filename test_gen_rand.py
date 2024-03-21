@@ -1,7 +1,8 @@
-from utils import Montage, Cutter, normalize
-from utils import get_datamodule
-from utils import get_config, load_model_from_checkpoint
-from utils import all_referential, KeepNRandomChannels
+from local_utils import Montage, Cutter, normalize
+from local_utils import get_datamodule
+from local_utils import get_config, load_model_from_checkpoint
+from local_utils import all_referential, KeepNRandomChannels
+from local_utils import init_standard_transforms
 import numpy as np
 import os
 import pickle
@@ -29,30 +30,29 @@ def save_preds(df,preds,path_model):
 def get_args():
     parser = argparse.ArgumentParser(description='Train model with different montages')
     parser.add_argument('--path_model')
-    parser.add_argument('--dataset')
     args = parser.parse_args()
 
-    return args.path_model, args.dataset
+    return args.path_model
 
 if __name__=='__main__':
 
-   path_model,dataset = get_args()
+   path_model = get_args()
    config = get_config(path_model)
    trainer = init_trainer()
    torch.set_float32_matmul_precision('high')
 
-   montage = Montage(config['CHANNELS'],all_referential)
-   cutter = Cutter(config['WINDOWSIZE'],0,config['FS'])
-   model = load_model_from_checkpoint(path_model,config)
-   transforms = [montage,cutter,normalize]
+   transforms = init_standard_transforms(all_referential,config['CHANNELS'],
+                                        config['WINDOWSIZE'],0,config['FS'])
+
 
    n_runs = 10
+   dataset = 'Rep'
    results = {'n_keeper':[],'run':[],'AUROC':[]}
+   model = load_model_from_checkpoint(path_model,config)
 
    for n_keeper in tqdm(range(len(config['CHANNELS'])+1)):
       for run in range(n_runs):
          channel_remover = KeepNRandomChannels(len(config['CHANNELS']),N_keeper=n_keeper)
-         
          module = get_datamodule(dataset,transforms=transforms+[channel_remover],batch_size=256)
    
          labels = [int(np.round(l,0)) for l in module.get_labels('Test')]

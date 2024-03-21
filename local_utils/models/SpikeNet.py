@@ -91,7 +91,6 @@ class SpikeNet(nn.Module):
         self.block4 = OtherConvBlock(in_channels=64,out_channels=94,dropout=dropout,downsample=False)
         self.block5 = OtherConvBlock(in_channels=94,out_channels=94,dropout=dropout,downsample=True)
         self.block6 = OtherConvBlock(in_channels=94,out_channels=128,dropout=dropout,downsample=False)
-        
 
     def forward(self,x):
         # input shape [batch_size, eeg_channels, timesteps]
@@ -107,5 +106,31 @@ class SpikeNet(nn.Module):
         x = self.block6(x)
         return x
 
-
+class SpikeNetLarge(nn.Module):
+    def __init__(self,n_eeg_channels,dropout=0.2):
+        super().__init__()
+        self.block1 = FirstConvBlock(in_channels=1,out_channels=32,dropout=dropout)
+        self.block2 = SecondConvBlock(in_channels=32,out_channels=64,n_eeg_channels=n_eeg_channels,dropout=dropout)
+        self.block3 = OtherConvBlock(in_channels=64,out_channels=64,dropout=dropout,downsample=True)
+        self.block4 = OtherConvBlock(in_channels=64,out_channels=94,dropout=dropout,downsample=False)
+        self.block5 = OtherConvBlock(in_channels=94,out_channels=94,dropout=dropout,downsample=True)
+        self.block6 = OtherConvBlock(in_channels=94,out_channels=128,dropout=dropout,downsample=False)
+        self.block7 = OtherConvBlock(in_channels=128,out_channels=128,dropout=dropout,downsample=False)
+        self.block8 = OtherConvBlock(in_channels=128,out_channels=256,dropout=dropout,downsample=True)
         
+
+    def forward(self,x):
+        # input shape [batch_size, eeg_channels, timesteps]
+        # bring into [batch_size, channels,timesteps,eeg_channels]
+        x = x.permute(0,2,1)
+        x = x.unsqueeze(1)
+        
+        x = self.block1(x)
+        x = self.block2(x)
+        x = self.block3(x)
+        x = self.block4(x)
+        x = self.block5(x)
+        x = self.block6(x)
+        x = self.block7(x)
+        x = self.block8(x)
+        return x

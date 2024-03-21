@@ -17,11 +17,12 @@ two_central = ['C3','C4']
 
 six_referential = ['F3','C3','O1','F4','C4','O2']
 
-points_of_interest = {'Fp1, Fp2':two_frontal,
-                'C3, C4':two_central,
+points_of_interest = {
                 'T3, F7, T4 F8':['T3','F7','T4','F8'],
                 'T3, P3, Pz, T4, P4':['T3','P3','Pz','T4','P4'],
                 'F3, C3, O1, F4, C4, O2':six_referential,
+                'Fp1, Fp2, F7, F8, O1, O2':['Fp1', 'Fp2', 'F7', 'F8', 'O1', 'O2'],
+                'Fp1, Fp2, F7, F8, T3, T5, T4, T6, O1, O2': ['Fp1','Fp2', 'F7', 'F8', 'T3', 'T5', 'T4', 'T6', 'O1', 'O2'],
                 'all 10-20 channels':all_referential,
                 }
 

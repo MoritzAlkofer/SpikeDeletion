@@ -1,4 +1,4 @@
-event_file,fraction_of_yes,pred,ChannelLocation
+event_file,label,pred,ChannelLocation
 ALB0004_6,0,0.23740266,frontal
 ALB0004_4,0,0.1410746,frontal
 ALB0004_1,1,0.3407309,frontal

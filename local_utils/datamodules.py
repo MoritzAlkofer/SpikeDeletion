@@ -163,6 +163,12 @@ class DatamoduleClemson(DatamoduleBase):
         loader = np.load
         super().__init__(path_files,labels,modes,loader,batch_size,transforms,collate_fn)
         
+        df_locations = pd.read_csv('/home/moritz/Desktop/programming/SpikeDeletion_clean/Subprojects/external_dataset/spike_location.csv')
+        self.locations = df.merge(df_locations,on='event_file',how='left').location.to_list()
+        
+    def get_locations(self,mode):
+        return [loc for loc, m in zip(self.locations, self.modes) if m == mode]
+
 def collate_fn(batch):
     # process your batch
     X, y = zip(*batch)
